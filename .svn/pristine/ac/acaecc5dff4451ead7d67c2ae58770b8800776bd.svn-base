@@ -1,0 +1,97 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	<title>Event's details</title>
+</h:head>
+
+<h:body>
+	
+	<h:form>
+		<p:growl id="msgs" showDetail="true" />
+			<p:panel header="event details">
+			<h:panelGrid columns="2" cellpadding="5"  id="eventDetailsGrid">
+				<h:outputLabel for="title" value="Title:" />
+				<h:inputText id="title" value="#{scheduleView.calendarEvent.title}"
+					required="true" disabled="#{scheduleView.notCreator}"/>
+					
+				<h:outputLabel value="Creator:" />
+				<h:outputText value="#{scheduleView.calendarEvent.organizerUser.username}" />
+
+				<h:outputLabel for="from" value="From:" />
+				<p:calendar value="#{scheduleView.calendarEvent.startDate}" mode="popup" disabled="#{scheduleView.notCreator}">
+				
+				</p:calendar>
+				
+
+				<h:outputLabel for="to" value="To:" />
+				<p:calendar value="#{scheduleView.calendarEvent.endDate}" mode="popup" disabled="#{scheduleView.notCreator}">
+				
+				</p:calendar>
+				
+				
+				<h:outputLabel value="Description:" />
+				<h:inputText value="#{scheduleView.calendarEvent.description}" disabled="#{scheduleView.notCreator}" />
+
+				<h:outputLabel value="Location:" />
+				<h:inputText value="#{scheduleView.calendarEvent.location}" disabled="#{scheduleView.notCreator}"/>
+
+				<h:outputLabel value="type" />
+					<h:outputText value="outdoor"/>
+				<h:outputLabel value="visibility:" />
+				<p:selectOneMenu id="visible"
+					value="#{scheduleView.calendarEvent.visibility}"
+					style="width:125px" disabled="#{scheduleView.notCreator}">
+					<f:selectItem itemLabel="Public" itemValue="public" />
+					<f:selectItem itemLabel="Private" itemValue="private" />
+				</p:selectOneMenu>
+
+				<h:outputLabel value="Weather forecast:" />
+				<p:dataScroller value="#{scheduleView.getWeatherOfCalendarEvent()}"
+					var="weather" chunkSize="2">
+					<h:panelGrid columns="2" style="width:100%">
+						<h:outputText value="#{weather.date}">
+						<f:convertDateTime pattern="dd/MM/yyyy" timeZone="GMT+2" />
+						</h:outputText>
+						<h:outputText value="#{weather.weather}"/>
+					</h:panelGrid>				
+				</p:dataScroller>
+				
+				<p:outputLabel for="badWeatherConditionMenu" value="bad weather condition:"/>
+				<p:selectOneMenu id="badWeatherConditionMenu" style="width:125px" 
+				value="#{scheduleView.calendarEvent.badWeatherCondition}" disabled="#{scheduleView.notCreator}">
+				<f:selectItems value="#{scheduleView.badWeatherCondition}" var="bwc"
+					itemLabel="#{bwc.condition}" itemValue="#{bwc.condition}"/>
+				</p:selectOneMenu>
+				
+				<h:outputLabel value="invited users:" />
+				<p:dataScroller value="#{scheduleView.getNotifications()}"
+					var="user" chunkSize="2">
+					<h:panelGrid columns="1" style="width:100%">
+						<h:outputText value="#{user.username}" />
+					</h:panelGrid>				
+				</p:dataScroller>
+
+				<h:outputLabel value="participating users:" />
+				<p:dataScroller value="#{scheduleView.getInvitations()}"
+					var="user" chunkSize="2">
+					<h:outputText value="#{user.username}" />
+				</p:dataScroller>			
+			
+			</h:panelGrid>
+			
+			<!-- buttons that allow to delete or update the event -->
+			<p:commandButton id="deleteButton" value="Delete"
+				action="#{scheduleView.deleteEvent()}" 
+				update="msgs" disabled="#{scheduleView.notCreator}"/>
+			<p:commandButton value="Update"
+				action="#{scheduleView.updateEvent()}"
+			    update="msgs" disabled="#{scheduleView.notCreator}"/>
+			<p:commandButton value="Main Page" icon="ui-icon-home" action="mainPage" immediate="true"/>
+		</p:panel>
+	</h:form>
+	</h:body>
+</html>

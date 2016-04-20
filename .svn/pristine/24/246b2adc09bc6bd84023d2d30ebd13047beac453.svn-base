@@ -1,0 +1,52 @@
+package bean;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateful;
+import javax.enterprise.context.RequestScoped;
+import javax.faces.application.FacesMessage;
+import javax.faces.context.FacesContext;
+import javax.inject.Named;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+
+import control.PasswordEncrypter;
+import control.UserManager;
+
+@Named
+@RequestScoped
+public class LoginBean {
+	
+    private String username;
+    private String password;
+    @EJB UserManager um;
+    
+    public LoginBean() {
+    }
+
+    public String getUsername() {
+        return this.username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return this.password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String login() {
+    	return um.checkUserFields(username, password);
+    }
+
+    public String disconnect() {
+    	FacesContext context = FacesContext.getCurrentInstance();
+        HttpServletRequest request = (HttpServletRequest) context.getExternalContext().getRequest();
+        request.getSession().invalidate();
+        return "/loginPage?faces-redirect=true";
+    }
+}

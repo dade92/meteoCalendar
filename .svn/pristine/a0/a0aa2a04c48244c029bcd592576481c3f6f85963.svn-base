@@ -1,0 +1,69 @@
+package test;
+
+import static org.junit.Assert.assertNotNull;
+
+import java.util.Calendar;
+import java.util.Date;
+
+import javax.ejb.EJB;
+
+import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.asset.EmptyAsset;
+import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import control.WeatherManager;
+
+@RunWith(Arquillian.class)
+public class WeatherManagerTest {
+	
+	@EJB WeatherManager wm;
+	
+	private Calendar calendar;
+	
+    @Deployment
+    public static WebArchive createArchiveAndDeploy() {
+        return ShrinkWrap.create(WebArchive.class)
+                .addClass(WeatherManager.class)
+                .addPackage(WeatherManager.class.getPackage())
+                .addAsResource("test-persistence.xml", "META-INF/persistence.xml")
+                .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
+    }
+	
+    @Before
+    public void setUp() {
+    	calendar=Calendar.getInstance();  	
+    }
+	
+    @Test
+    public void weatherManagerShouldBeInjected() {
+        assertNotNull(wm);
+    }
+    
+    @Test
+    public void weatherManagerShouldReturnWeather() {   
+    	String weather=wm.getWeatherData("erba", calendar.getTime());
+    	assertNotNull(weather);
+    	System.out.println("weather for today:"+weather);
+    	calendar.add(Calendar.DAY_OF_MONTH, 1);
+    	System.out.println("weather for tomorrow:"+wm.getWeatherData("erba", calendar.getTime()));
+    }
+    
+    @Test
+    public void getWeatherForMoreDays() {
+    	System.out.println("***WEATHER FOR MORE DAYS***");
+    	//gets the weather forecast for the days
+    	for(int i=0;i<15;i++) {
+    		calendar.add(Calendar.DAY_OF_MONTH, 1);
+    		Date date=calendar.getTime();
+    		System.out.println("data:"+date);
+    		System.out.println("weather:"+wm.getWeatherData("erba", date));
+    	}
+    }
+	
+
+}

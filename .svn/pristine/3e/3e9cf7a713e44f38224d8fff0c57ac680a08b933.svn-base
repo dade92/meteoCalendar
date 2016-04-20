@@ -1,0 +1,32 @@
+package bean;
+
+import java.security.Principal;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateful;
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import control.UserManager;
+
+@Named
+@RequestScoped
+@Stateful
+public class UserBean {
+	
+    @EJB
+    UserManager um;
+    @Inject
+    Principal principal;
+    
+    public UserBean() {
+    }
+    
+    public String getUsername() {
+        return um.getLoggedUser().getUsername();
+    }
+    
+    
+
+}

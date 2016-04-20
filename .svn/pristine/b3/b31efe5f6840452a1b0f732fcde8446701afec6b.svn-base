@@ -1,0 +1,21 @@
+package bean;
+
+import java.util.List;
+
+import javax.ejb.EJB;
+import javax.faces.bean.ManagedBean;
+
+import control.UserManager;
+import entity.User;
+
+@ManagedBean
+public class CheckboxView {
+    
+	@EJB
+    private UserManager um;
+     
+ 
+    public List<User> getUsers() {
+    	return um.findAll();
+    }
+}

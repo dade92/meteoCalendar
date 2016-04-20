@@ -1,0 +1,45 @@
+package entity;
+
+import java.util.Date;
+
+import javax.persistence.Entity;
+
+@Entity
+public class OutdoorEvent extends Event {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private String weather;
+	private String badWeatherCondition;
+	
+	public OutdoorEvent(String title,String descr, String visible,String location,Date startDate,Date endDate,String weather,String badWeatherCondition) {
+		super(title,descr,visible,location,startDate,endDate);
+		setWeather(weather);
+		setBadWeatherCondition(badWeatherCondition);
+	}
+	
+	public OutdoorEvent() {
+		// TODO Auto-generated constructor stub
+	}
+
+	public void setBadWeatherCondition(String bwc) {
+		this.badWeatherCondition=bwc;
+	}
+	
+	public String getBadWeatherCondition() {
+		return this.badWeatherCondition;
+	}
+	
+	public void setWeather(String w) {
+		this.weather=w;
+	}
+	
+	public String getWeather() {
+		return weather;
+	}
+	
+	
+
+}

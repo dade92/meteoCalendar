@@ -1,0 +1,86 @@
+package control;
+
+import java.security.Principal;
+
+import javax.ejb.Stateless;
+import javax.faces.application.FacesMessage;
+import javax.faces.context.FacesContext;
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+
+import entity.Group;
+import entity.User;
+
+@Stateless
+public class UserManager {
+	
+    @PersistenceContext
+    EntityManager em;
+    
+    @Inject
+    Principal principal;
+
+    /**
+     * create a new user
+     * @param user the user
+     */
+    public void createUser(User user) {
+    	user.setGroupName(Group.USERS);
+        em.persist(user);
+    }
+    
+    /**
+     * check the correctness of the credentials
+     * @param username user's username 
+     * @param password user's password
+     * @return true if login is correct
+     * 		false otherwise
+     */
+    public boolean checkUserFields(String username,String password) {
+    	FacesContext context = FacesContext.getCurrentInstance();
+    	HttpServletRequest request = (HttpServletRequest) context.getExternalContext().getRequest();
+    	try {
+    		request.login(username, password);
+        	return true;
+    	} catch (ServletException e) {
+            context.addMessage(null, new FacesMessage("Login failed."));
+            return false;
+        } 
+
+    }
+    
+    /**
+     * get the current user
+     * @return the user
+     */
+    public User getLoggedUser() {
+        TypedQuery<User> tq=(TypedQuery<User>) em.createQuery("SELECT user FROM user where t.uniqueKey = :value1")
+                .setParameter("value1", principal.getName()).getSingleResult();
+        return (User) tq;
+    }
+
+    /**
+     * loads the user given the username
+     * @param username user's username
+     * @return the user
+     */
+    public User loadUserByUsername(String username) {
+        TypedQuery<User> tq=em.createQuery("SELECT u FROM user WHERE NAME="+username,User.class);
+        return (User) tq;
+    }
+    
+    /**
+     * loads the user by id
+     * @param id user's id
+     * @return the user
+     */
+    public User loadUserById(int id) {
+        TypedQuery<User> tq=em.createQuery("SELECT u FROM user WHERE ID="+id,User.class);
+        return (User) tq;
+    }
+
+}

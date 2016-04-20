@@ -1,0 +1,17 @@
+package entity;
+
+public enum NotificationType {
+	
+	INVITATION("newInvitation");
+	
+	private String type;
+	
+	private NotificationType(String type) {
+		this.type=type;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+}

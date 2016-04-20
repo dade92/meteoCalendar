@@ -1,0 +1,16 @@
+package entity;
+
+import javax.persistence.Entity;
+
+@Entity
+public class InviteNotification extends Notification {
+
+	public InviteNotification() {
+
+	}
+
+	public InviteNotification(User u, Event e, String info) {
+		super(u, e, info);
+	}
+
+}

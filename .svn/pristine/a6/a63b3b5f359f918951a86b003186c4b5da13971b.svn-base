@@ -1,0 +1,136 @@
+package control;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.Date;
+import java.util.logging.Level;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
+import javax.ejb.Schedule;
+import javax.ejb.Singleton;
+import javax.ejb.Stateless;
+import javax.json.JsonObject;
+import javax.ws.rs.client.ClientBuilder;
+
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONObject;
+
+import entity.Event;
+
+@Singleton
+public class WeatherManager {
+	
+	@EJB EventManager em;
+	
+	private static final String BASE_URL="http://api.openweathermap.org/data/2.5/weather?q=";
+	
+    @PostConstruct
+    private void constructed() {
+        System.out.println("weather manager built");
+    }
+	
+	
+	public String getWeatherData(String location,Date date) {
+		/*
+		HttpURLConnection con = null ;
+        InputStream is = null;
+ 
+        try {
+            con = (HttpURLConnection) ( new URL(BASE_URL + location)).openConnection();
+            con.setRequestMethod("GET");
+            con.setDoInput(true);
+            con.setDoOutput(true);
+            con.connect();
+            JSONObject jsonObject;
+            JSONArray weather;
+             
+            // Let's read the response
+            StringBuffer buffer = new StringBuffer();
+            is = con.getInputStream();
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            String line = null;
+            while (  (line = br.readLine()) != null )
+                buffer.append(line + "\r\n");
+             
+            is.close();
+            con.disconnect();
+           
+            jsonObject=new JSONObject( buffer.toString() );
+
+            weather=new JSONArray(jsonObject.optString("weather"));
+            return weather.optJSONObject(0).optString("main");
+        }
+        catch(Throwable t) {
+            t.printStackTrace();
+        }
+        finally {
+            try { is.close(); } catch(Throwable t) {}
+            try { con.disconnect(); } catch(Throwable t) {}
+        }
+ 
+        return null;
+	}
+	
+	public Date findNextGoodWeatherDay(String badWeatherCondition) {
+		return null;*/
+		return "Cloud";
+		
+	}
+	
+	
+	public void getWeatherByDate() {
+		HttpURLConnection con = null ;
+        InputStream is = null;
+        
+        
+        try {
+            con = (HttpURLConnection) ( new URL(BASE_URL + "erba")).openConnection();
+            con.setRequestMethod("GET");
+            con.setDoInput(true);
+            con.setDoOutput(true);
+            con.connect();
+             
+            // Let's read the response
+            StringBuffer buffer = new StringBuffer();
+            is = con.getInputStream();
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            String line = null;
+            while (  (line = br.readLine()) != null )
+                buffer.append(line + "\r\n");
+             
+            is.close();
+            con.disconnect();
+            
+        }
+        catch(Throwable t) {
+            t.printStackTrace();
+        }
+        finally {
+            try { is.close(); } catch(Throwable t) {}
+            try { con.disconnect(); } catch(Throwable t) {}
+        }
+                
+	}
+	
+	
+	@Schedule(second = "*/59", minute = "*/30", hour = "*", persistent=false)
+    public void updateEvents() {
+    	
+    	for(Event e:em.loadOutdoorEvents()) {
+    		try {
+    			e.setWeather(this.getWeatherData(e.getLocation(), e.getStartDate()));
+				em.updateWeather(e);
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+    	}
+    	
+    }
+	
+
+}

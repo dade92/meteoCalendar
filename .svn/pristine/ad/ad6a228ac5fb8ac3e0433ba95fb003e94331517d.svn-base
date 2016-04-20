@@ -1,0 +1,291 @@
+package control;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
+import javax.ejb.Singleton;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONObject;
+
+import entity.OutdoorEvent;
+import entity.WeatherInformation;
+
+@Singleton
+public class WeatherManager {
+
+	@EJB
+	EventManager em;
+	@PersistenceContext(unitName = "meteoCalPU")
+	EntityManager enm;
+
+	private static final String BASE_URL = "http://api.openweathermap.org/data/2.5/forecast/daily?q=";
+
+	private static final String DAY_URL = ",IT&mode=json&units=metric&cnt=16";
+
+	private static final long MILLIS_IN_A_DAY = 3600 * 24 * 1000;
+
+	@PostConstruct
+	private void constructed() {
+		System.out.println("weather manager built");
+	}
+
+	private static long getTimestampOfTheDay(long ts) {
+		return ts - (ts % MILLIS_IN_A_DAY);
+	}
+
+	/**
+	 * updates the weather data given the event
+	 * 
+	 * @param e
+	 *            the event
+	 */
+	public void updateWeatherData(OutdoorEvent e) {
+
+		HttpURLConnection con = null;
+		InputStream is = null;
+		String weather = null;
+		String location = e.getLocation();
+		Date date = e.getStartDate();
+		Date endDate = e.getEndDate();
+
+		try {
+			con = (HttpURLConnection) (new URL(BASE_URL + location + DAY_URL))
+					.openConnection();
+			con.setRequestMethod("GET");
+			con.setDoInput(true);
+			con.setDoOutput(true);
+			con.connect();
+			JSONObject jsonObject;
+
+			// Let's read the response
+			StringBuffer buffer = new StringBuffer();
+			is = con.getInputStream();
+			BufferedReader br = new BufferedReader(new InputStreamReader(is));
+			String line = null;
+			while ((line = br.readLine()) != null)
+				buffer.append(line + "\r\n");
+
+			is.close();
+			con.disconnect();
+
+			// gets the json object
+			jsonObject = new JSONObject(buffer.toString());
+			// Here we have the forecast for every day
+			JSONArray jArr = jsonObject.getJSONArray("list");
+
+			for (int i = 0; i < jArr.length(); i++) {
+				// forecast for the day
+				JSONObject jDayForecast = jArr.getJSONObject(i);
+
+				// retrieve the timestamp
+				long timestamp = getTimestampOfTheDay(jDayForecast
+						.getLong("dt") * 1000);
+
+				// se è uno dei giorni dell'evento
+				if (timestamp >= getTimestampOfTheDay(date.getTime())
+						&& timestamp <= getTimestampOfTheDay(endDate.getTime())) {
+					// gets the array of the weather
+					double temperature = jDayForecast.getJSONObject("temp")
+							.getDouble("day");
+					System.out.println("temperature:" + temperature);
+					JSONArray jWeatherArr = jDayForecast
+							.getJSONArray("weather");
+					// gets the first object in the array (the only once)
+					JSONObject jWeatherObj = jWeatherArr.getJSONObject(0);
+					// gets the string of the weather
+					weather = jWeatherObj.getString("main");
+					// create a new weatherInformation
+					this.createWeatherInformation(weather, new Date(timestamp),
+							temperature, e);
+				}// end if
+
+			}// end for
+		} catch (Throwable t) {
+			t.printStackTrace();
+		} finally {
+			try {
+				is.close();
+			} catch (Throwable t) {
+			}
+			try {
+				con.disconnect();
+			} catch (Throwable t) {
+			}
+		}
+
+	}
+
+	public List<String> getWeatherByStartAndEndDate(String location, Date date,
+			Date endDate) {
+		HttpURLConnection con = null;
+		InputStream is = null;
+		List<String> weather = new ArrayList<String>();
+
+		try {
+			con = (HttpURLConnection) (new URL(BASE_URL + location + DAY_URL))
+					.openConnection();
+			con.setRequestMethod("GET");
+			con.setDoInput(true);
+			con.setDoOutput(true);
+			con.connect();
+			JSONObject jsonObject;
+
+			// Let's read the response
+			StringBuffer buffer = new StringBuffer();
+			is = con.getInputStream();
+			BufferedReader br = new BufferedReader(new InputStreamReader(is));
+			String line = null;
+			while ((line = br.readLine()) != null)
+				buffer.append(line + "\r\n");
+
+			is.close();
+			con.disconnect();
+
+			// gets the json object
+			jsonObject = new JSONObject(buffer.toString());
+			// Here we have the forecast for every day
+			JSONArray jArr = jsonObject.getJSONArray("list");
+
+			for (int i = 0; i < jArr.length(); i++) {
+				// forecast for the day
+				JSONObject jDayForecast = jArr.getJSONObject(i);
+
+				// retrieve the timestamp
+				long timestamp = getTimestampOfTheDay(jDayForecast
+						.getLong("dt") * 1000);
+
+				// se è uno dei giorni dell'evento
+				if (timestamp >= getTimestampOfTheDay(date.getTime())
+						&& timestamp <= getTimestampOfTheDay(endDate.getTime())) {
+					// gets the array of the weather
+					JSONArray jWeatherArr = jDayForecast
+							.getJSONArray("weather");
+					// gets the first object in the array (the only once)
+					JSONObject jWeatherObj = jWeatherArr.getJSONObject(0);
+					// gets the string of the weather
+					weather.add(jWeatherObj.getString("main"));
+				}// end if
+
+			}// end for
+		} catch (Throwable t) {
+			t.printStackTrace();
+		} finally {
+			try {
+				is.close();
+			} catch (Throwable t) {
+			}
+			try {
+				con.disconnect();
+			} catch (Throwable t) {
+			}
+		}
+		return weather;
+	}
+
+	public void createWeatherInformation(String weather, Date date,
+			double temp, OutdoorEvent e) {
+		enm.persist(new WeatherInformation(weather, date, temp, e));
+	}
+
+	public void deleteWeatherInformationByEvent(OutdoorEvent e) {
+		enm.createQuery("DELETE FROM WeatherInformation n WHERE n.event=:e")
+				.setParameter("e", e).executeUpdate();
+	}
+
+	public List<WeatherInformation> getWeatherByEvent(OutdoorEvent e) {
+		TypedQuery<WeatherInformation> tq = (TypedQuery<WeatherInformation>) enm
+				.createQuery(
+						"SELECT w FROM WeatherInformation w WHERE w.event=:e")
+				.setParameter("e", e);
+		return tq.getResultList();
+	}
+
+	public List<WeatherInformation> getWeatherByEventAndDate(OutdoorEvent e,
+			Date date) {
+		TypedQuery<WeatherInformation> tq = (TypedQuery<WeatherInformation>) enm
+				.createQuery(
+						"SELECT w FROM WeatherInformation w WHERE w.event=:e and w.date>=:date")
+				.setParameter("e", e).setParameter("date", date);
+		return tq.getResultList();
+	}
+
+	/**
+	 * returns all the weather forecast
+	 * 
+	 * @param location
+	 *            the location
+	 * @return weather forecasts for two weeks
+	 */
+	public List<String> getWeatherForTwoWeeks(String location) {
+		// TODO Auto-generated method stub
+
+		HttpURLConnection con = null;
+		InputStream is = null;
+		List<String> weather = new ArrayList<String>();
+
+		try {
+			con = (HttpURLConnection) (new URL(BASE_URL + location + DAY_URL))
+					.openConnection();
+			con.setRequestMethod("GET");
+			con.setDoInput(true);
+			con.setDoOutput(true);
+			con.connect();
+			JSONObject jsonObject;
+
+			// Let's read the response
+			StringBuffer buffer = new StringBuffer();
+			is = con.getInputStream();
+			BufferedReader br = new BufferedReader(new InputStreamReader(is));
+			String line = null;
+			while ((line = br.readLine()) != null)
+				buffer.append(line + "\r\n");
+
+			is.close();
+			con.disconnect();
+
+			// gets the json object
+			jsonObject = new JSONObject(buffer.toString());
+			// Here we have the forecast for every day
+			JSONArray jArr = jsonObject.getJSONArray("list");
+
+			for (int i = 0; i < jArr.length(); i++) {
+				// forecast for the day
+				JSONObject jDayForecast = jArr.getJSONObject(i);
+
+				// gets the array of the weather
+				JSONArray jWeatherArr = jDayForecast.getJSONArray("weather");
+				// gets the first object in the array (the only once)
+				JSONObject jWeatherObj = jWeatherArr.getJSONObject(0);
+				// gets the string of the weather
+				weather.add(jWeatherObj.getString("main"));
+			}// end if
+
+			// end for
+		} catch (Throwable t) {
+			t.printStackTrace();
+		} finally {
+			try {
+				is.close();
+			} catch (Throwable t) {
+			}
+			try {
+				con.disconnect();
+			} catch (Throwable t) {
+			}
+		}
+		return weather;
+	}
+
+}

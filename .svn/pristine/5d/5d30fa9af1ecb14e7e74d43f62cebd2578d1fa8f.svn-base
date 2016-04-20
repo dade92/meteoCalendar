@@ -1,0 +1,177 @@
+package entity;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import javax.persistence.CascadeType;
+import javax.persistence.DiscriminatorColumn;
+import javax.persistence.DiscriminatorType;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Temporal;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+
+@Entity
+@DiscriminatorColumn(discriminatorType = DiscriminatorType.STRING, name = "type")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+public abstract class Event implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	private int id;
+	@NotNull(message = "title May not be empty")
+	private String title;
+	private String description;
+	@NotNull(message = "end date may not be empty")
+	@Temporal(javax.persistence.TemporalType.TIMESTAMP)
+	private Date endDate;
+	@NotNull(message = "start date may not be empty")
+	@Temporal(javax.persistence.TemporalType.TIMESTAMP)
+	private Date startDate;
+	private String visibility;
+	@NotNull(message = "location may not be empty")
+	@Pattern(regexp = "[[A-Z]a-z]+[ [[A-Z]a-z]]*", message = "Invalid location")
+	private String location;
+	private boolean rescheduled;
+
+	@ManyToOne
+	private User organizerUser;
+	@ManyToMany(cascade = CascadeType.REMOVE, mappedBy = "invitedEvents")
+	private List<User> invitedUsers;
+
+	@OneToMany(cascade = CascadeType.ALL)
+	private List<Notification> eventNotifications;
+	
+	@OneToMany(cascade=CascadeType.ALL)
+	private List<WeatherInformation> weatherInformation;
+
+	public Event() {
+
+	}
+
+	public Event(String title, String descr, String visible, String location,
+			Date startDate, Date endDate) {
+		this.title = title;
+		this.description = descr;
+		this.visibility = visible;
+		this.location = location;
+		this.setStartDate(startDate);
+		this.setEndDate(endDate);
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
+	public void setStartDate(Date date) {
+		this.startDate = date;
+	}
+
+	public Date getStartDate() {
+		return startDate;
+	}
+
+	public void setEndDate(Date date) {
+		this.endDate = date;
+	}
+
+	public Date getEndDate() {
+		return endDate;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public String getVisibility() {
+		return visibility;
+	}
+
+	public void setVisibility(String visible) {
+		this.visibility = visible;
+	}
+
+	public String getLocation() {
+		return location;
+	}
+
+	public void setLocation(String location) {
+		this.location = location;
+	}
+
+	@ManyToOne
+	@JoinColumn(name = "id", nullable = false)
+	public User getOrganizerUser() {
+		return organizerUser;
+	}
+
+	public void setOrganizerUser(User organizerUser) {
+		this.organizerUser = organizerUser;
+	}
+
+	public List<User> getInvitedUsers() {
+		return invitedUsers;
+	}
+
+	public void setInvitedUsers(List<User> users) {
+		this.invitedUsers = users;
+	}
+
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "event", orphanRemoval = true, fetch = FetchType.LAZY)
+	public List<Notification> getEventNotifications() {
+		return eventNotifications;
+	}
+
+	public void setEventNotifications(List<Notification> eventNotifications) {
+		this.eventNotifications = eventNotifications;
+	}
+
+	public void addToInvitedUsers(User u) {
+		if (invitedUsers == null)
+			this.invitedUsers = new ArrayList<User>();
+		invitedUsers.add(u);
+	}
+
+	public boolean isRescheduled() {
+		return rescheduled;
+	}
+
+	public void setRescheduled(boolean rescheduled) {
+		this.rescheduled = rescheduled;
+	}
+	
+	public List<WeatherInformation> getWeatherInformation() {
+		return weatherInformation;
+	}
+
+}

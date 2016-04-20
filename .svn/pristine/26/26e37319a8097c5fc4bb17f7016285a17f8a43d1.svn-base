@@ -1,0 +1,26 @@
+package entity;
+
+public class OutdoorEvent extends Event {
+	
+	private String weather;
+	private String badWeatherCondition;
+	
+	public void setBadWeatherCondition(String bwc) {
+		this.badWeatherCondition=bwc;
+	}
+	
+	public String getBadWeatherCondition() {
+		return this.badWeatherCondition;
+	}
+	
+	public void setWeather(String w) {
+		this.weather=w;
+	}
+	
+	public String getWeather() {
+		return weather;
+	}
+	
+	
+
+}

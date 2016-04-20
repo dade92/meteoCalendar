@@ -1,0 +1,146 @@
+package control;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
+
+import javax.ejb.EJB;
+import javax.ejb.Singleton;
+
+import entity.WeatherInformation;
+import entity.NotificationType;
+import entity.OutdoorEvent;
+import entity.User;
+import exception.InvalidDateException;
+import exception.NotCreatorException;
+
+@Singleton
+public class Rescheduler {
+
+	@EJB
+	NotificationManager nm;
+	@EJB
+	UserManager um;
+	@EJB
+	EventManager em;
+	@EJB
+	WeatherManager wm;
+	@EJB
+	InvitationManager im;
+	//format object by which i can parse the data
+	private static final SimpleDateFormat format = new SimpleDateFormat(
+			"dd/MM/yyyy");
+
+	public ArrayList<String> checkForBadWeather(User currentUser) {
+
+		ArrayList<String> eventTitles = new ArrayList<String>();
+		Calendar calendar = new GregorianCalendar();
+		// obtains the corresponding date for today
+		Date today = calendar.getTime();
+		// obtains the time in millis that corresponds to tomorrow
+		calendar.add(Calendar.DAY_OF_MONTH, 1);
+		Date tomorrow = calendar.getTime();
+		// obtains the time in millis that corresponds to three days after
+		calendar.add(Calendar.DAY_OF_MONTH, 2);
+		Date threeDays = calendar.getTime();
+
+		List<WeatherInformation> weatherData;
+		// for every event created
+		for (OutdoorEvent e : em.loadOutdoorEvents(currentUser)) {
+			// stores the information about date,location and weather of the
+			// date
+			weatherData = wm.getWeatherByEvent(e);
+			// if tomorrow there is an event with bad weather conditions
+			if (isNotifiable(e, weatherData, tomorrow))
+				eventTitles.add(e.getTitle());
+
+			// checks also for bad weather condition of three days after and
+			// events that were not been rescheduled
+			else if (isReschedulable(e, weatherData, threeDays)) {
+				// gets the current day
+				calendar.setTime(today);
+				// looks for a suitable day until 15 days
+				for (String weather : wm.getWeatherForTwoWeeks(e.getLocation())) {
+					//adds every iteration one day
+					calendar.add(Calendar.DAY_OF_MONTH, 1);
+					if (!e.getBadWeatherCondition().equals(weather)) {
+						// create a notification with the suggested date
+						nm.createNotification(currentUser, e,
+								NotificationType.BAD_WEATHER_CONDITION,
+								format.format(calendar.getTime()));
+						e.setRescheduled(true);
+						try {
+							em.updateEvent(e);
+						} catch (NotCreatorException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						} catch (InvalidDateException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+						// gets out from the cycle because it has found a
+						// suitable date
+						break;
+					}// end if
+				}// end inner for (looks for suitable date)
+
+			}// end else if
+		}// end for
+
+		// for every event to which the user has been invited checks a bad
+		// weather collision for tomorrow
+		for (OutdoorEvent e : im.loadInvitedOutdoorEvents(currentUser)) {
+
+			weatherData = wm.getWeatherByEvent(e);
+			// if tomorrow there is an event with bad weather conditions
+			if (isNotifiable(e, weatherData, tomorrow))
+				eventTitles.add(e.getTitle());
+		}
+
+		return eventTitles;
+	}
+
+	@SuppressWarnings("deprecation")
+	private boolean isNotifiable(OutdoorEvent e,
+			List<WeatherInformation> weather, Date tomorrow) {
+		//if there are the weather information
+		if (weather.size() > 0) {
+			boolean badWeatherConflict=false;
+			//if it finds one day in which there is a bad weather condition
+			for(WeatherInformation w:weather) {
+				if(w.getWeather().equals(e.getBadWeatherCondition())) {
+					//sets the attribute to true
+					badWeatherConflict=true;
+					break;
+				}
+			}
+			//if all these conditions holds, return true
+			if (badWeatherConflict 
+					&& tomorrow.getYear() == e.getStartDate().getYear()
+					&& tomorrow.getMonth() == e.getStartDate().getMonth()
+					&& tomorrow.getDay() == e.getStartDate().getDay())
+				return true;
+		}
+		return false;
+	}
+
+	@SuppressWarnings("deprecation")
+	private static boolean isReschedulable(OutdoorEvent e,
+			List<WeatherInformation> weather, Date threeDays) {
+		//if there are the weather information
+		if (weather.size() > 0) {
+			//if all these conditions holds, return true
+			if (e.getBadWeatherCondition().equals(weather.get(0).getWeather())
+					&& threeDays.getYear() == e.getStartDate().getYear()
+					&& threeDays.getMonth() == e.getStartDate().getMonth()
+					&& threeDays.getDay() == e.getStartDate().getDay()
+					&& !e.isRescheduled())
+				return true;
+		}
+		return false;
+	}
+
+}

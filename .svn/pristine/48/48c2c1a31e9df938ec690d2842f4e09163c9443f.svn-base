@@ -1,0 +1,82 @@
+package test;
+
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
+
+import java.util.Date;
+
+import javax.ejb.EJB;
+import javax.persistence.EntityManager;
+
+import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.asset.EmptyAsset;
+import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.Before;
+import org.junit.Test;
+
+import control.EventManager;
+import control.NotificationManager;
+import control.UserManager;
+import entity.Event;
+import entity.IndoorEvent;
+import entity.InviteNotification;
+import entity.Notification;
+import entity.User;
+
+
+public class NotificationManagerIT {
+	
+	@EJB NotificationManager nm;
+	
+	@EJB UserManager um;
+	
+	@EJB EventManager em;
+	
+	private Notification n;
+	
+	private User user;
+	
+	private Event event;
+	
+    @Deployment
+    public static WebArchive createArchiveAndDeploy() {
+        return ShrinkWrap.create(WebArchive.class)
+                .addPackage(NotificationManager.class.getPackage())
+                .addPackage(Notification.class.getPackage())
+                .addAsResource("test-persistence.xml", "META-INF/persistence.xml")
+                .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
+    }
+    
+    @Before
+    public void setUp() {
+    	String username="davide";
+    	String password="password";
+    	String firstname="davide";
+    	String lastname="Botti";
+    	String email="davide@hotmail.it";
+        user = new User(username,password,firstname,lastname,email);
+        event=new IndoorEvent("prova","","public","erba",new Date(),new Date());
+        um.createUser(user);
+        //em.create(event);
+        n=new InviteNotification();
+    }
+		
+    @Test
+    public void notificationManagerShouldBeInjected() {
+    	assertNotNull(nm);
+    }
+    
+    
+    @Test
+    public void notificationManagerShouldCreateNotification() {
+    	nm.createNotification(n);
+    }
+    
+    @Test
+    public void notificationManagerShouldLoadNotifications() {
+    	assertNotNull(nm.findNotificationsByUser(user));
+    }
+	
+
+}

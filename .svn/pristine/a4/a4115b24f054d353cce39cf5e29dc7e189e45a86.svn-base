@@ -1,0 +1,79 @@
+package control;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+
+import entity.Event;
+import entity.User;
+
+@Stateless
+public class InvitationManager {
+	
+    @PersistenceContext
+    EntityManager em;
+    
+    @EJB
+    private UserManager um;
+    
+    /**
+     * create an invitation entry given the
+     * id of the user and of the event
+     * @param user user 
+     * @param event event
+     */
+    public void createInvitation(User user,Event event) {
+    	user.addToInvitedEvents(event);
+    	em.merge(user);
+    }
+    
+    /**
+     * loads the events to which
+     * the user has been invited
+     * @return the events
+     */
+    public List<Event> loadInvitedEvents() {
+    	TypedQuery<Event> tq=(TypedQuery<Event>) em.createQuery(
+        		"SELECT e FROM Event e WHERE  e.invitedUsers=:user")
+        		.setParameter("user", um.getLoggedUser());
+        return tq.getResultList();
+    }
+    
+    /**
+     * load the events to which
+     * the user has been invited
+     * @param userId user's id
+     * @return the events to which
+     * 		the user has been invited
+     */
+    public List<Event> loadInvitedEventsByUser(User user) {
+    	TypedQuery<Event> tq=(TypedQuery<Event>) em.createQuery(
+        		"SELECT e FROM Event e WHERE  e.invitedUsers=:user")
+        		.setParameter("user", user);
+        return tq.getResultList();
+    }
+    
+    public List<Event> loadEventsByDate(User user,Date date) {
+    	
+    	return null;
+    }
+    
+    /**
+     * get the participants to an event
+     * @param eventId event's id
+     * @return the users that will participate
+     * 		to the event
+     */
+    public User loadUserByEvent(int eventId) {
+    	return null;
+    }
+    
+    
+
+}

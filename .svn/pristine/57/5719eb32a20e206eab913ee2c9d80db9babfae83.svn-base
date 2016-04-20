@@ -1,0 +1,27 @@
+package bean;
+
+import java.util.Date;
+
+import org.primefaces.model.DefaultScheduleEvent;
+import org.primefaces.model.DefaultScheduleModel;
+import org.primefaces.model.ScheduleModel;
+
+public class ScheduleBean {
+	
+	private ScheduleModel model;
+
+	public ScheduleBean() {
+		
+		model.addEvent(new DefaultScheduleEvent("test event", new Date(),
+				new Date()));
+	}
+
+	public ScheduleModel getModel() {
+		if(model==null) {
+			model=new DefaultScheduleModel();
+			model.addEvent(new DefaultScheduleEvent("test event", new Date(),
+					new Date()));
+		}
+		return model;
+	}
+}

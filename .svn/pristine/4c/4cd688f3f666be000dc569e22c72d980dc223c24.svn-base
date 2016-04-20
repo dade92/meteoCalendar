@@ -1,0 +1,73 @@
+package control;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
+import javax.ejb.Schedule;
+import javax.ejb.Singleton;
+import javax.ejb.Stateless;
+import javax.json.JsonObject;
+import javax.ws.rs.client.ClientBuilder;
+
+import entity.Event;
+import entity.NotificationType;
+import entity.User;
+
+@Singleton
+public class Rescheduler {
+	
+	@EJB NotificationManager nm;
+	@EJB UserManager um;
+	@EJB EventManager em;
+	@EJB WeatherManager wm;
+	@EJB InvitationManager im;
+	private List<Event> tomorrowEvents;
+	
+	private static final Logger logger = Logger.getLogger(Rescheduler.class.getName());
+	
+    @PostConstruct
+    private void constructed() {
+        logger.log(Level.INFO, "rescheduler created");
+    }
+	
+	@Schedule(minute = "*/5", persistent=false)
+	public void checkForBadWeather() {
+		
+		System.out.println("prova schedule");
+		System.out.println(wm.getWeatherData("erba"));
+		
+		Calendar calendar=new GregorianCalendar();
+		calendar.add(Calendar.DAY_OF_MONTH, 1);
+		Date tomorrow=calendar.getTime();
+		
+		User currentUser=um.getLoggedUser();
+		String weather;
+		//loads all the created events of the user
+		for(Event e:em.loadOutdoorEventsByUser(currentUser)) {	
+			weather=wm.getWeatherByDate(e.getLocation(), e.getStartDate());
+			e.setWeather(weather);
+			//if it's bad weather and the event is planned for tomorrow
+			if(e.getBadWeatherCondition()==weather && e.getStartDate().equals(tomorrow)) 
+				nm.createNotification(currentUser,e,NotificationType.BAD_WEATHER_CONDITION);
+			//if the weather of an event planned for three days from now is bad, look for another date
+			
+		}
+		//for all the events to which the user is invited
+		for(Event e:im.loadInvitedOutdoorEventsByUser(currentUser)) {
+			weather=wm.getWeatherByDate(e.getLocation(), e.getStartDate());
+			e.setWeather(weather);
+			//if it's bad weather and the event is planned for tomorrow
+			if(e.getBadWeatherCondition()==weather && e.getStartDate().equals(tomorrow)) {
+				nm.createNotification(currentUser,e,NotificationType.BAD_WEATHER_CONDITION);
+			}
+		}				
+				
+	}
+	
+}

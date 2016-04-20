@@ -1,0 +1,65 @@
+package bean;
+
+import java.io.Serializable;
+import java.util.List;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
+import javax.ejb.Stateful;
+import javax.faces.application.FacesMessage;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.SessionScoped;
+import javax.faces.bean.ViewScoped;
+import javax.faces.context.FacesContext;
+
+import org.primefaces.event.SelectEvent;
+import org.primefaces.event.UnselectEvent;
+
+import control.UserManager;
+import entity.User;
+
+@ManagedBean
+@SessionScoped
+public class SearchUsersCheckboxView implements Serializable {
+    
+	private static final long serialVersionUID = 1L;
+
+	@EJB
+    private UserManager um;
+	
+	private List<User> users;
+	
+	private User selectedUser;
+     
+	@PostConstruct
+    public void init() {
+        users=um.findAll();	
+    }
+	
+	public void setSelectedUser(User users) {
+		this.selectedUser=users;
+	}
+	
+	public User getSelectedUser() {
+		return this.selectedUser;
+	}
+ 
+    public List<User> getUsers() {
+    	return users;
+    }
+    
+    public void setUsers(List<User> users) {
+    	this.users=users;
+    }
+    
+    public String onRowSelect(SelectEvent event) {
+    	FacesMessage msg = new FacesMessage("user selected "+ ((User) event.getObject()).getId());
+        FacesContext.getCurrentInstance().addMessage(null, msg);
+        return "otherUserPage?faces-redirect=true";
+    }
+ 
+    public void onRowUnselect(UnselectEvent event) {
+        FacesMessage msg = new FacesMessage("user Unselected "+ ((User) event.getObject()).getId());
+        FacesContext.getCurrentInstance().addMessage(null, msg);
+    }
+}

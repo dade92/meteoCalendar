@@ -1,0 +1,21 @@
+package bean;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
+import javax.ejb.Startup;
+
+import control.Rescheduler;
+
+@Startup
+public class checkWeatherBean {
+	
+	@EJB Rescheduler rescheduler;
+	
+	  @PostConstruct
+	  public void init() {
+	    /* Startup stuff here. */
+	  }
+	  
+	  
+
+}

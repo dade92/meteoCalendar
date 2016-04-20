@@ -1,0 +1,60 @@
+package entity;
+
+import java.util.Date;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.Temporal;
+
+@Entity
+public class WeatherInformation {
+	
+	@Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+	private int id;
+	private String weather;
+	@Temporal(javax.persistence.TemporalType.DATE)
+	private Date date;
+	@ManyToOne
+	private OutdoorEvent event;
+	
+	public WeatherInformation() {
+		
+	}
+	
+	public WeatherInformation(String weather,Date date,OutdoorEvent e) {
+		this.weather=weather;
+		this.date=date;
+		this.event=e;
+	}
+
+	public String getWeather() {
+		return weather;
+	}
+
+	public void setWeather(String weather) {
+		this.weather = weather;
+	}
+
+	public Date getDate() {
+		return date;
+	}
+
+	public void setDate(Date date) {
+		this.date = date;
+	}
+	
+	public OutdoorEvent getEvent() {
+		return event;
+	}
+	
+	public void setEvent(OutdoorEvent e) {
+		this.event=e;
+	}
+	
+	
+
+}

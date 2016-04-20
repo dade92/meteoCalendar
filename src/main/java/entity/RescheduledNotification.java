@@ -1,0 +1,16 @@
+package entity;
+
+import javax.persistence.Entity;
+
+@Entity
+public class RescheduledNotification extends Notification {
+
+	public RescheduledNotification() {
+
+	}
+
+	public RescheduledNotification(User u, Event e, String info) {
+		super(u, e, info);
+	}
+
+}

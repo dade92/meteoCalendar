@@ -1,0 +1,21 @@
+package entity;
+
+public enum BadWeatherCondition {
+	
+	SUNNY("clear"),
+	CLOUDY("cloud"),
+	RAINY("rain"),
+	SNOWY("snow"),
+	FOGGY("fog");
+	
+	private String condition;
+	
+	private BadWeatherCondition(String string) {
+		this.condition=string;
+	}
+	
+	public String getCondition() {
+		return condition;
+	}
+
+}

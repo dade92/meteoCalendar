@@ -1,0 +1,67 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	<title>Notifications</title>
+</h:head>
+<h:body>
+	<h:form>
+		<!-- data table of invitations  -->
+		<p:dataTable id="invitationDT" var="notification" value="#{notificationView.invitations}"
+				style="margin-bottom:0;margin-right:400;margin-left:400" scrollable="true" width="300" >
+				<f:facet name="header">
+            			Invitations:
+        		</f:facet>
+				<p:column headerText="Event">
+					<h:outputText value="#{notification.event.title}" />
+				</p:column>
+				<p:column headerText="Inviter">
+					<h:outputText value="#{notification.event.organizerUser}" />
+				</p:column>
+				<p:column headerText="Description">
+					<h:outputText value="#{notification.event.description}"/>
+				</p:column>
+				<p:column headerText="Start Date">
+					<h:outputLabel value="#{notification.event.startDate}">
+					<f:convertDateTime pattern="dd/MM/yyyy" timeZone="GMT+1" /></h:outputLabel>
+				</p:column>
+				<p:column headerText="End Date">
+					<h:outputLabel value="#{notification.event.endDate}">
+					<f:convertDateTime pattern="dd/MM/yyyy" timeZone="GMT+1" /></h:outputLabel>
+				</p:column>
+				<p:column>
+					<p:commandButton value="Accept" icon="ui-icon-check" action="#{notificationView.acceptInvitation(notification)}"/>
+					<p:commandButton value="Refuse" icon="ui-icon-closethick" action="#{notificationView.refuseInvitation(notification)}"/>
+				</p:column>
+			</p:dataTable>
+			<!--  data table that shows the rescheduled events -->
+			<p:dataTable id="eventsrescheduledDT" var="notification" value="#{notificationView.rescheduledEvents}"
+				style="margin-bottom:0;margin-right:400;margin-left:400" scrollable="true" width="300" >
+				<f:facet name="header">
+            			Proposed dates for events
+        		</f:facet>
+				<p:column headerText="Event to be Rescheduled">
+					<h:outputText value="#{notification.event.title}" />
+				</p:column>
+				<p:column headerText="Old Starting Date">
+				<h:outputLabel value="#{notification.event.startDate}">
+				<f:convertDateTime pattern="dd/MM/yyyy" timeZone="GMT+1" />
+				</h:outputLabel>				
+				</p:column>
+				<p:column headerText="proposed Starting Date">
+				<h:outputLabel value="#{notification.info}">
+				<f:convertDateTime pattern="dd/MM/yyyy" timeZone="GMT+1" />
+				</h:outputLabel>
+				</p:column>
+				<p:column>
+					<p:commandButton value="Accept" icon="ui-icon-check" action="#{notificationView.acceptProposedDate(notification)}" />
+					<p:commandButton value="Refuse" icon="ui-icon-closethick" action="#{notificationView.refuseProposedDate(notification)}" />
+				</p:column>
+			</p:dataTable>
+			<p:commandButton value="Main Page" icon="ui-icon-home" action="mainPage" immediate="true"/>
+	</h:form>
+</h:body>
+</html>

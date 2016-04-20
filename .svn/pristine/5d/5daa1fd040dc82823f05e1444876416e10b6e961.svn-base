@@ -1,0 +1,56 @@
+package entity;
+
+import entity.Event;
+
+import java.io.Serializable;
+import java.util.Calendar;
+import java.util.Date;
+
+import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+
+/**
+ * Entity implementation class for Entity: OutdoorEvent
+ *
+ */
+@Entity
+@DiscriminatorValue(value = "outdoor")
+public class OutdoorEvent extends Event implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+	private String weather;
+	@NotNull(message="may not be empty")
+	private String badWeatherCondition;
+	
+
+	public OutdoorEvent() {
+		super();
+	}
+	
+	public OutdoorEvent(String title,String descr, String visible,String location,String weather,String badWeatherCondition,Date startDate,Date endDate,String indoorOutdoor) {
+		super(title,descr,visible,location,startDate,endDate,indoorOutdoor);
+		this.weather=weather;
+		this.badWeatherCondition=badWeatherCondition;
+	}
+
+
+	public String getWeather() {
+		return weather;
+	}
+
+
+	public void setWeather(String weather) {
+		this.weather = weather;
+	}
+
+
+	public String getBadWeatherCondition() {
+		return badWeatherCondition;
+	}
+
+
+	public void setBadWeatherCondition(String badWeatherCondition) {
+		this.badWeatherCondition = badWeatherCondition;
+	}
+   
+}

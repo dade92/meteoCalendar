@@ -1,0 +1,39 @@
+package bean;
+
+import javax.ejb.EJB;
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Named;
+
+import control.NotificationManager;
+import entity.Notification;
+
+@Named
+@RequestScoped
+public class NotificationBean {
+	
+	@EJB
+	private NotificationManager nm;
+	
+	private Notification notification;
+	
+	public NotificationBean() {
+		
+	}
+	
+	public Notification getNotification() {
+		if(notification==null)
+			this.notification=new Notification();
+		return this.notification;
+	}
+	
+	public void setNotification(Notification n) {
+		this.notification=n;
+	}
+	
+	public void createNotification() {
+		nm.createNotification(notification);
+	}
+	
+	
+
+}

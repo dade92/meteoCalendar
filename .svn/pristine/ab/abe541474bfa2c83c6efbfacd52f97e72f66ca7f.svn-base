@@ -1,0 +1,165 @@
+package bean;
+
+import java.io.Serializable;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
+import javax.enterprise.inject.Model;
+import javax.faces.application.FacesMessage;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.SessionScoped;
+import javax.faces.bean.ViewScoped;
+import javax.faces.context.FacesContext;
+import javax.faces.event.ActionEvent;
+ 
+
+
+
+import javax.inject.Inject;
+import javax.persistence.PersistenceContext;
+
+import org.primefaces.event.ScheduleEntryMoveEvent;
+import org.primefaces.event.ScheduleEntryResizeEvent;
+import org.primefaces.event.SelectEvent;
+import org.primefaces.model.DefaultScheduleEvent;
+import org.primefaces.model.DefaultScheduleModel;
+import org.primefaces.model.LazyScheduleModel;
+import org.primefaces.model.ScheduleEvent;
+import org.primefaces.model.ScheduleModel;
+
+import control.EventManager;
+import control.InvitationManager;
+import control.UserManager;
+import entity.Event;
+import entity.IndoorEvent;
+import entity.User;
+
+@ManagedBean
+@ViewScoped
+public class ScheduleView implements Serializable  {
+
+	
+	private static final long serialVersionUID = 1L;
+	
+	private ScheduleModel lazyEventModel;
+	
+	private String isCreator;
+
+	private  ScheduleEvent event = new DefaultScheduleEvent();
+	
+	private Event calendarEvent=new Event();
+	
+	@EJB EventManager em;
+	@EJB InvitationManager im;
+	@EJB UserManager um;
+	
+
+	@PostConstruct
+	public void init() {
+		
+		lazyEventModel = new LazyScheduleModel() {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+            public void loadEvents(Date start, Date end) {
+            	for(Event e:em.loadCreatedEvents()) {
+        			addEvent(new DefaultScheduleEvent(e.getTitle(),e.getStartDate(),e.getEndDate(),e.getId()));
+        		}
+        		for(Event e:im.loadInvitedEvents()) {
+        			addEvent(new DefaultScheduleEvent(e.getTitle(),e.getStartDate(),e.getEndDate(),e.getId()));
+        		}
+            }   
+        };
+
+	}
+	
+	public void deleteEvent() {
+		em.remove(calendarEvent);
+	}
+	
+	public String checkUpdatable() {
+		if(calendarEvent.getOrganizerUser().equals(um.getLoggedUser()))
+			return "updatePage";
+		else {
+			System.err.println("you're not the creator");
+			return "mainPage";
+		}
+	}
+	
+	public void updateEvent() {
+		//calls the method of the manager on the calendarEvent
+		System.out.println("update called!!");
+		em.updateEvent(calendarEvent);
+	}
+	    
+    public ScheduleModel getLazyEventModel() {
+        return lazyEventModel;
+    }
+     
+    public ScheduleEvent getEvent() {
+        return event;
+    }
+ 
+    public void setEvent(ScheduleEvent event) {
+        this.event = event;
+    }
+    
+    public void setCalendarEvent(Event e) {
+    	this.calendarEvent=e;
+    }
+    
+    public Event getCalendarEvent() {
+    	return calendarEvent;
+    }
+     
+    public void addEvent(ActionEvent actionEvent) {
+        if(event.getId() == null)
+            lazyEventModel.addEvent(event);
+        else
+        	lazyEventModel.updateEvent(event);
+         
+        event = new DefaultScheduleEvent();
+    }
+     
+    public void onEventSelect(SelectEvent selectEvent) {
+        event = (ScheduleEvent) selectEvent.getObject();
+        calendarEvent=em.find((int)event.getData());
+        if(calendarEvent.getOrganizerUser().getId()==um.getLoggedUser().getId())
+        	this.setIsCreator("true");
+        else
+        	this.setIsCreator("false");
+    }
+    
+    public List<User> getNotifications() {
+    	return em.loadNotifiedUsers(calendarEvent);
+    }
+    
+    public List<User> getInvitations() {
+    	return im.loadInvitedUsers(calendarEvent);
+    }
+     
+     
+    private void addMessage(FacesMessage message) {
+        FacesContext.getCurrentInstance().addMessage(null, message);
+    }
+
+	public String getIsCreator() {
+		return isCreator;
+	}
+
+	public void setIsCreator(String isCreator) {
+		this.isCreator = isCreator;
+	}
+	
+	public User getUser() {
+		return um.getLoggedUser();
+	}
+	
+	public void onVisibilityChange(SelectEvent selectEvent) {
+		System.out.println("visibility changed:"+(selectEvent.toString()));
+	}
+}

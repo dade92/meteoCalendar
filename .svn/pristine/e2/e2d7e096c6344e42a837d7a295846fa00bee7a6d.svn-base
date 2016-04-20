@@ -1,0 +1,86 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	<title>User Calendar</title>
+</h:head>
+<h:body>
+
+	<h:form id="form">
+		<p:growl id="msgs" showDetail="true" />
+
+		<h:panelGrid columnClasses="value">
+			<h3 style="margin-top: 0">#{otherUserScheduleView.cbw.selectedUser}'s
+				Calendar</h3>
+			<p:commandButton value="Main Page" icon="ui-icon-home"
+				action="user/mainPage" />
+			<p:schedule id="schedule"
+				value="#{otherUserScheduleView.lazyEventModel}"
+				widgetVar="myschedule" timeZone="GMT+1" tooltip="true"
+				draggable="false" resizable="false">
+				<p:ajax event="eventSelect"
+					listener="#{otherUserScheduleView.onEventSelect}"
+					update="eventDetails" oncomplete="PF('eventDialog').show();" />
+			</p:schedule>
+
+		</h:panelGrid>
+
+		<p:dialog widgetVar="eventDialog" header="Event Details"
+			showEffect="clip" hideEffect="clip">
+
+			<h:panelGrid id="eventDetails" columns="2">
+				<h:outputLabel for="title" value="Title:" />
+				<h:outputText id="title"
+					value="#{otherUserScheduleView.calendarEvent.title}"
+					required="true" />
+
+				<h:outputLabel for="from" value="From:" />
+				<h:outputLabel id="from"
+					value="#{otherUserScheduleView.calendarEvent.startDate}"
+					mask="99/99/9999">
+					<f:convertDateTime pattern="dd/MM/yyyy" timeZone="GMT+1" />
+				</h:outputLabel>
+
+				<h:outputLabel for="to" value="To:" />
+				<h:outputLabel id="to"
+					value="#{otherUserScheduleView.calendarEvent.endDate}"
+					mask="99/99/9999">
+					<f:convertDateTime pattern="dd/MM/yyyy" timeZone="GMT+1" />
+				</h:outputLabel>
+
+				<h:outputLabel value="Description:" />
+				<h:outputText
+					value="#{otherUserScheduleView.calendarEvent.description}" />
+
+				<h:outputLabel value="Location:" />
+				<h:outputText
+					value="#{otherUserScheduleView.calendarEvent.location}" />
+
+				<p:outputLabel for="visible">Visibility:</p:outputLabel>
+				<h:outputText id="visible"
+					value="#{otherUserScheduleView.calendarEvent.visibility}"
+					style="width:125px" />
+								
+				<h:outputLabel value="participating users:" />
+				<p:dataScroller
+					value="#{otherUserScheduleView.calendarEvent.invitedUsers}"
+					var="user" chunkSize="10">
+					#{user.username}
+				</p:dataScroller>
+
+			</h:panelGrid>
+
+		</p:dialog>
+
+<style type="text/css">
+.value {
+	width: 1000px;
+}
+</style>
+	</h:form>
+
+</h:body>
+</html>

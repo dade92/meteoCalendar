@@ -1,0 +1,235 @@
+package bean;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
+import javax.faces.application.ConfigurableNavigationHandler;
+import javax.faces.application.FacesMessage;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.SessionScoped;
+import javax.faces.bean.ViewScoped;
+import javax.faces.context.FacesContext;
+import javax.faces.event.ActionEvent;
+import javax.faces.event.AjaxBehaviorEvent;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import org.primefaces.event.SelectEvent;
+import org.primefaces.model.DefaultScheduleEvent;
+import org.primefaces.model.LazyScheduleModel;
+import org.primefaces.model.ScheduleEvent;
+import org.primefaces.model.ScheduleModel;
+
+import control.EventManager;
+import control.InvitationManager;
+import control.NotificationManager;
+import control.Rescheduler;
+import control.UserManager;
+import control.WeatherManager;
+import entity.BadWeatherCondition;
+import entity.Event;
+import entity.IndoorEvent;
+import entity.OutdoorEvent;
+import entity.User;
+import entity.WeatherInformation;
+import exception.InvalidDateException;
+import exception.NotCreatorException;
+
+@ManagedBean
+@SessionScoped
+public class ScheduleView implements Serializable  {
+
+	
+	private static final long serialVersionUID = 1L;
+	
+	private ScheduleModel lazyEventModel;
+	
+	private String notCreator;
+
+	private  ScheduleEvent event = new DefaultScheduleEvent();
+	
+	private Event calendarEvent;
+		
+	@EJB EventManager em;
+	@EJB InvitationManager im;
+	@EJB NotificationManager nm;
+	@EJB UserManager um;
+	@EJB Rescheduler rescheduler;
+	@EJB WeatherManager wm;
+
+	@PostConstruct
+	public void init() {
+		
+		lazyEventModel = new LazyScheduleModel() {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+            public void loadEvents(Date start, Date end) {
+            	for(Event e:em.loadCreatedEvents()) {
+        			addEvent(new DefaultScheduleEvent(e.getTitle(),e.getStartDate(),e.getEndDate(),e.getId()));
+        		}
+        		for(Event e:im.loadInvitedEvents()) {
+        			addEvent(new DefaultScheduleEvent(e.getTitle(),e.getStartDate(),e.getEndDate(),e.getId()));
+        		}
+            }   
+        };
+	}
+	
+	public void deleteEvent() {
+		try {
+			//removes the event and reload the page
+			em.remove(calendarEvent);
+			this.addMessage("", "Event removed");
+			this.reload();
+			
+		} catch (NotCreatorException e) {
+			this.addMessage("", "you're not the creator");
+		}
+	}
+		
+	public void updateEvent() {
+		//calls the method of the manager on the calendarEvent
+		try {
+			em.updateEvent(calendarEvent);
+			this.addMessage("", "Event updated successfully!");
+			reload();
+		} catch (NotCreatorException e) {
+			this.addMessage("", "you're not the creator");
+		} catch (InvalidDateException e) {
+			// TODO Auto-generated catch block
+			this.addMessage("", "invalid date!");
+		}
+	}
+	    
+	public void checkForNotifications() {
+		System.out.println("looking for notifications...");
+		List<String>answer;
+		//get the list of events that must be shown to the user (notification)
+		answer=rescheduler.checkForBadWeather(um.getLoggedUser());
+		System.out.println("answer of rescheduler: "+answer);
+		for(String title:answer)
+			this.addMessage("Warning", "the event "+title+" has bad weather for tomorrow!");
+		
+	}
+    public ScheduleModel getLazyEventModel() {
+        return lazyEventModel;
+    }
+     
+    public ScheduleEvent getEvent() {
+        return event;
+    }
+ 
+    public void setEvent(ScheduleEvent event) {
+        this.event = event;
+    }
+    
+    public void setCalendarEvent(Event e) {
+    	this.calendarEvent=e;
+    }
+    
+    public Event getCalendarEvent() {
+    	return calendarEvent;
+    }
+     
+    public void addEvent(ActionEvent actionEvent) {
+        if(event.getId() == null)
+            lazyEventModel.addEvent(event);
+        else
+        	lazyEventModel.updateEvent(event);
+         
+        event = new DefaultScheduleEvent();
+    }
+     
+    public void onEventSelect(SelectEvent selectEvent) {
+        event = (ScheduleEvent) selectEvent.getObject();
+        calendarEvent=em.find((int)event.getData());
+        ConfigurableNavigationHandler cnh= (ConfigurableNavigationHandler) 
+    			FacesContext.getCurrentInstance().getApplication().getNavigationHandler();	
+    	
+        if(calendarEvent instanceof OutdoorEvent) {
+        	System.out.println("outdoor event!");
+        	if(calendarEvent.getOrganizerUser().getId()==um.getLoggedUser().getId())
+        		notCreator="false";
+        	else
+        		notCreator="true";
+        	
+        	cnh.performNavigation("outdoorEventDetailsPage?faces-redirect=true");
+        } else if(calendarEvent instanceof IndoorEvent) {
+        	System.out.println("indoor event");
+        	cnh.performNavigation("indoorEventDetailsPage?faces-redirect=true");
+        }
+        
+    }
+    
+    public List<User> getNotifications() {
+    	return nm.loadNotifiedUsers(calendarEvent);
+    }
+    
+    public List<User> getInvitations() {
+    	return im.loadInvitedUsers(calendarEvent);
+    }
+     
+     
+    private void addMessage(String details,String msg) {
+    	FacesMessage message = new FacesMessage(details,msg);	
+        FacesContext.getCurrentInstance().addMessage("msgs", message);
+    }
+    
+    public List<WeatherInformation> getWeatherOfCalendarEvent() {
+    	if(calendarEvent instanceof OutdoorEvent) {
+    		return wm.getWeatherByEvent((OutdoorEvent)calendarEvent);
+    	}
+    	return null;
+    }
+	
+	public User getUser() {
+		return um.getLoggedUser();
+	}
+	
+	public void onVisibilityChange(AjaxBehaviorEvent selectEvent) {
+		User currentUser=um.getLoggedUser();
+		if(currentUser.isVisible())
+			currentUser.setVisible(false);
+		else
+			currentUser.setVisible(true);
+		um.updateUser(currentUser);
+		this.addMessage("", "Calendar visibility changed!");
+	}
+
+	public String getNotCreator() {
+		return notCreator;
+	}
+
+	public void setNotCreator(String notCreator) {
+		this.notCreator = notCreator;
+	}
+	
+    private void reload() {
+    	ConfigurableNavigationHandler cnh= (ConfigurableNavigationHandler) 
+    			FacesContext.getCurrentInstance().getApplication().getNavigationHandler();	
+    	cnh.performNavigation("mainPage?faces-redirect=true");
+    }
+
+	public BadWeatherCondition[] getBadWeatherCondition() {
+		return BadWeatherCondition.values();
+	}
+
+}

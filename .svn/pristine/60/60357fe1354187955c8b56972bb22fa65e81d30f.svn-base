@@ -1,0 +1,58 @@
+package test;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+import javax.persistence.EntityManager;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import control.PasswordEncrypter;
+import control.UserManager;
+import entity.Group;
+import entity.User;
+
+public class UserManagerTest {
+	
+	private UserManager um;
+	       
+    @Before
+    public void setUp() {
+    	um=new UserManager();  	
+    	um.setEm(mock(EntityManager.class));
+    }
+	
+    
+    @Test
+    public void UserManagerShouldBeInitialized() {
+        assertNotNull(um);
+    }
+    
+    @Test
+    public void newUsersShouldBelongToUserGroupAndSavedOnce() {
+        User newUser = new User();
+        um.createUser(newUser);
+        assertThat(newUser.getGroupName(), is(Group.USERS));
+        verify(um.getEm(),times(1)).persist(newUser);
+    }
+    
+    @Test
+    public void passwordsShouldBeEncryptedOnDB() {
+        User newUser = new User();
+        String email = "prova@hotmail.com";
+        String password = "password";
+        newUser.setEmail(email);
+        newUser.setUsername("Davide");
+        newUser.setPassword(password);
+        um.createUser(newUser);
+        User foundUser = um.loadUserByUsername("Davide");
+        assertNotNull(foundUser);
+        assertThat(foundUser.getPassword(),is(PasswordEncrypter.encryptPassword(password)));
+    }
+
+}

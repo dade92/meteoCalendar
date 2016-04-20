@@ -1,0 +1,43 @@
+package test;
+
+import static org.junit.Assert.*;
+
+import javax.ejb.EJB;
+
+import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.asset.EmptyAsset;
+import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import control.NotificationManager;
+import entity.Notification;
+
+@RunWith(Arquillian.class)
+public class NotificationManagerTest {
+	
+	@EJB NotificationManager nm;
+	
+    @Deployment
+    public static WebArchive createArchiveAndDeploy() {
+        return ShrinkWrap.create(WebArchive.class)
+                .addClass(NotificationManager.class)
+                .addPackage(NotificationManager.class.getPackage())
+                .addAsResource("test-persistence.xml", "META-INF/persistence.xml")
+                .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
+    }
+	
+    @Test
+    public void notificationManagerShouldBeInjected() {
+    	assertNotNull(nm);
+    }
+    
+    @Test
+    public void notificationManagerShouldCreateNotification() {
+    	nm.createNotification(new Notification());
+    }
+	
+
+}

@@ -1,0 +1,10 @@
+package entity;
+
+public class IndoorEvent extends Event {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+}

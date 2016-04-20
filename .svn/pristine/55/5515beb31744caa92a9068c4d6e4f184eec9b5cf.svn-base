@@ -1,0 +1,37 @@
+package test;
+
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
+
+import javax.ejb.EJB;
+import javax.persistence.EntityManager;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import control.NotificationManager;
+import entity.Notification;
+
+
+public class NotificationManagerTest {
+	
+	@EJB NotificationManager nm;
+	
+	@Before
+	public void setUp() {
+		nm=new NotificationManager();
+		nm.setEm(mock(EntityManager.class));
+	}
+	
+    @Test
+    public void notificationManagerShouldBeInjected() {
+    	assertNotNull(nm);
+    }
+    
+    @Test
+    public void notificationManagerShouldCreateNotification() {
+    	nm.createNotification(new Notification());
+    }
+	
+
+}

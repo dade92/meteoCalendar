@@ -1,0 +1,39 @@
+package control;
+
+import javax.ejb.Stateless;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+
+import entity.Notification;
+import entity.User;
+
+@Stateless
+public class NotificationManager {
+	
+    @PersistenceContext
+    EntityManager em;
+    
+    /**
+     * creates a new notificaiton
+     * @param notification the notification
+     */
+    public void createNotification(Notification notification) {
+    	
+    	em.persist(notification);
+    }
+    
+    /**
+     * loads the notification related to
+     * a user
+     * @param userId user's id
+     * @return the notifications
+     */
+    public Notification loadNotificationById(int userId) {
+    	return null;
+    }
+    
+    
+    
+
+}

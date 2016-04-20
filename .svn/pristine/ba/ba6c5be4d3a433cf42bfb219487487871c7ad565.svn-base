@@ -1,0 +1,27 @@
+package control;
+
+import javax.ejb.Stateless;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+
+import entity.Notification;
+import entity.User;
+import entity.Event;
+
+import java.util.List;
+
+import entity.User;
+
+@Stateless
+public class NotificationManager {
+	
+	@PersistenceContext(unitName = "meteoCalPU")
+    EntityManager em; 	
+    
+    public void createNotification(Notification n) {
+    	em.persist(n);
+    }
+        
+
+}

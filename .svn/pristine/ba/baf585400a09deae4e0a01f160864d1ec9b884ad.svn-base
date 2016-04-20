@@ -1,0 +1,57 @@
+package test;
+
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
+
+import java.util.List;
+
+import javax.ejb.EJB;
+import javax.persistence.EntityManager;
+
+import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.asset.EmptyAsset;
+import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import entity.Event;
+import control.InvitationManager;
+import control.UserManager;
+
+
+public class InvitationManagerTest {
+	
+	private InvitationManager im;
+	
+	private UserManager um;
+	
+	@Before
+	public void setUp() {
+		im=new InvitationManager();
+		um=new UserManager();
+		um.setEm(mock(EntityManager.class));
+		im.setEm(mock(EntityManager.class));
+	}
+	
+    
+    @Test
+    public void invitationManagerShouldBeInitialized() {
+    	 assertNotNull(im);
+    }
+    
+    @Test
+    public void userManagerShouldBeInitialized() {
+    	assertNotNull(um);
+    }
+    
+    @Test
+    public void invitationManagerShouldLoadInvitations() {
+    	List<Event> events=im.loadInvitedOutdoorEventsByUser(um.loadUserByUsername("dade"));
+    	assertNotNull(events);
+    	System.out.println(events);
+    }
+
+}

@@ -1,0 +1,42 @@
+package bean;
+
+import javax.ejb.EJB;
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Named;
+
+import control.EventManager;
+import entity.Event;
+import entity.IndoorEvent;
+
+
+@Named(value = "eventCreationBean")
+@RequestScoped
+public class EventCreationBean {
+	
+    @EJB
+    private EventManager em;
+    //QUESTO L' HO LASCIATO EVENT GENERICO, CIOè GENERALIZIAMO A EVENT GENERICO POI NE RITORNIAMO UNO SPECIFICO
+    private Event event;
+
+    public EventCreationBean() {
+    }
+
+    public Event getEvent() {
+    	//RITORNA UN INDOOR EVENT DI DEFAULT POI VEDREMO COME SISTEMARE
+        if (event == null) {
+            return new IndoorEvent();
+        }
+        return event;
+    } 
+    
+
+    public void setEvent(Event event) {
+        this.event = event;
+    }
+
+    public String EventCreation() {
+        em.createEvent(event);
+        return "user/mainPage?faces-redirect=true";
+    }
+
+}

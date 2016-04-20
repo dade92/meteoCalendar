@@ -1,0 +1,157 @@
+package entity;
+
+import java.io.Serializable;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
+import javax.persistence.CascadeType;
+import javax.persistence.DiscriminatorColumn;
+import javax.persistence.DiscriminatorType;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Temporal;
+import javax.persistence.Transient;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.DefaultValue;
+
+import org.primefaces.model.DefaultScheduleEvent;
+
+@Entity
+@DiscriminatorColumn(discriminatorType=DiscriminatorType.STRING,name="type")
+@Inheritance(strategy=InheritanceType.SINGLE_TABLE)
+public class Event implements  Serializable {
+
+	private static final long serialVersionUID = 1L;
+
+	@Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+	private int id;
+	@NotNull(message = "May not be empty")
+	private String title;
+	private String description;
+	@NotNull(message = "May not be empty")
+	@Temporal(javax.persistence.TemporalType.DATE)
+	private Date startDate;
+	@NotNull(message = "May not be empty")
+	@Temporal(javax.persistence.TemporalType.DATE)
+	private Date endDate;
+	private String visibility;
+	@NotNull(message = "May not be empty")
+	private String location;
+	private String indoorOutdoor;
+	
+	@ManyToOne
+	private User organizerUser;
+	
+	private List<User> invitedUsers;
+	
+	@OneToMany(cascade=CascadeType.REMOVE)
+	private List<Notification> eventNotifications;
+	
+	public Event() {
+		
+	}
+	
+	public Event(String title,String descr, String visible,String location,Date startDate,Date endDate,String indoorOutdoor) {
+		this.title=title;
+		this.description=descr;
+		this.visibility=visible;
+		this.location=location;
+		this.startDate=startDate;
+		this.endDate=endDate;
+		this.indoorOutdoor=indoorOutdoor;
+	}
+	
+	public String getTitle() {
+		return title;
+	}
+	public void setTitle(String title) {
+		this.title = title;
+	}
+	
+	public void setStartDate(Date date) {
+		this.startDate=date;
+	}
+	
+	public Date getStartDate() {
+		return startDate;
+	}
+	
+	public void setEndDate(Date date) {
+		this.endDate=date;
+	}
+	
+	public Date getEndDate() {
+		return endDate;
+	}
+
+	public int getId() {
+		return id;
+	}
+	public void setId(int id) {
+		this.id = id;
+	}
+	public String getDescription() {
+		return description;
+	}
+	public void setDescription(String description) {
+		this.description = description;
+	}
+	public String getVisibility() {
+		return visibility;
+	}
+	public void setVisibility(String visible) {
+		this.visibility = visible;
+	}
+	public String getLocation() {
+		return location;
+	}
+	public void setLocation(String location) {
+		this.location = location;
+	}
+	public String getIndoorOutdoor() {
+		return indoorOutdoor;
+	}
+	public void setIndoorOutdoor(String indoorOutdoor) {
+		this.indoorOutdoor = indoorOutdoor;
+	}
+	
+	@ManyToOne
+	@JoinColumn(name="id", nullable=false)
+	public User getOrganizerUser() {
+		return organizerUser;
+	}
+	
+	public void setOrganizerUser(User organizerUser) {
+		this.organizerUser = organizerUser;
+	}
+	
+	@ManyToMany(mappedBy="invitedEvents")
+	public List<User> getInvitedUsers() {
+		return invitedUsers;
+	}
+	
+	@OneToMany(cascade=CascadeType.ALL,mappedBy="event")
+	public List<Notification> getEventNotifications() {
+		return eventNotifications;
+	}
+
+	public void setEventNotifications(List<Notification> eventNotifications) {
+		this.eventNotifications = eventNotifications;
+	}
+	
+	
+
+}

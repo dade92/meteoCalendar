@@ -1,0 +1,139 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	<title>Home</title>
+</h:head>
+<h:body>
+	
+	<h:form id="form">
+	<p:growl id="msgs" showDetail="true" />
+	<p:notificationBar id="not1" styleClass="top"  effect="slide" autodisplay="true"
+		widgetVar="nv">
+		<p:commandButton value="hide" onclick="PF('nv').hide()"
+			icon="ui-icon-arrow-1-n" />
+		<p:commandButton value="Create a new Event" action="eventCreationPage"/>
+		<p:commandButton value="see Notifications" action="notificationPage"/>
+		<p:commandButton value="Search other Users" oncomplete="PF('searchDialog').show();"/>
+		<p:commandButton value="Logout" action="#{loginBean.disconnect()}" />	
+			welcome back #{userBean.username}
+	</p:notificationBar>
+		<p:commandButton value="notification bar"
+			onclick="PF('nv').show()" icon="ui-icon-arrow-1-s" />
+
+	<h:form>
+    <p:growl id="messages" showDetail="true" />
+
+    <h:panelGrid columnClasses="value">
+        <h3 style="margin-top: 0">User Calendar</h3>
+        <p:schedule id="schedule" value="#{scheduleView.lazyEventModel}" 
+        widgetVar="myschedule" timeZone="GMT+2" tooltip="true" draggable="false" resizable="false">
+ 
+            <p:ajax event="dateSelect" listener="#{scheduleView.onDateSelect}" update="eventDetails" oncomplete="PF('eventDialog').show();" />
+            <p:ajax event="eventSelect" listener="#{scheduleView.onEventSelect}" update="eventDetails" oncomplete="PF('eventDialog').show();" />
+ 
+        </p:schedule>
+
+    </h:panelGrid>
+    
+
+ 
+    <p:dialog widgetVar="eventDialog" header="Event Details" showEffect="clip" hideEffect="clip">
+        
+		<h:panelGrid id="eventDetails" columns="2">
+			<h:outputLabel for="title" value="Title:" />
+            <h:outputText id="title" value="#{scheduleView.calendarEvent.title}" required="true"/>
+            
+			<h:outputLabel for="from" value="From:" />
+			<h:outputText id="from" value="#{scheduleView.calendarEvent.startDate}"
+				mask="99/99/9999">
+				<f:convertDateTime pattern="dd/MM/yyyy" timeZone="GMT+2" />
+			</h:outputText>
+			
+			<h:outputLabel for="description" value="Description:" />
+			<h:outputText value="#{scheduleView.calendarEvent.description}" />
+			
+			<h:outputLabel for="location" value="Location:" />
+			<h:outputText value="#{scheduleView.calendarEvent.location}" />
+			
+			<h:outputLabel for="to" value="To:" />
+            <h:outputText id="to" value="#{scheduleView.calendarEvent.endDate}" mask="99/99/9999">
+                <f:convertDateTime pattern="dd/MM/yyyy" timeZone="GMT+2"/>
+            </h:outputText>
+<<<<<<< .mine
+            
+			<h:outputLabel for="indoorOutdoor" value="Type:" />
+			<h:outputLabel value="#{scheduleView.calendarEvent.indoorOutdoor}" />
+			
+			<h:outputLabel value="invited users:"/>
+			<p:dataScroller value="#{scheduleView.calendarEvent.invitedUsers}" var="user" chunkSize="2">
+				#{user.username}
+			</p:dataScroller>
+			
+		</h:panelGrid>
+
+	
+=======
+ 
+            <p:commandButton value="see all details" />
+            <p:commandButton id="deleteButton" value="Delete" 
+            	action="#{scheduleView.deleteEvent()}" oncomplete="PF('myschedule').update();PF('eventDialog').hide();" />
+            <p:commandButton value="Update" action="#{scheduleView.updateEvent()}"/>
+        </h:panelGrid>
+>>>>>>> .r68
+    </p:dialog>    
+    
+    <p:dialog widgetVar="searchDialog" header="Users" showEffect="clip" hideEffect="clip" width="400">
+    	<p:dataTable id="users" var="user" value="#{searchUsersCheckboxView.users}" selectionMode="single"
+    		 selection="#{searchUsersCheckboxView.selectedUser}" rowKey="#{user.id}">
+        <f:facet name="header">
+            Select a user:
+        </f:facet>
+        <p:ajax event="rowSelect" listener="#{searchUsersCheckboxView.onRowSelect}" action="#{searchUsersCheckboxView.onRowSelect}" update=":form:msgs" />
+        <p:ajax event="rowUnselect" listener="#{searchUsersCheckboxView.onRowUnselect}" update=":form:msgs" />
+        <p:column headerText="username">
+            <h:outputText value="#{user.username}" />
+        </p:column>
+        <p:column headerText="email">
+            <h:outputText value="#{user.email}" />
+        </p:column>
+    </p:dataTable>
+    </p:dialog>
+</h:form>
+ 
+<script type="text/javascript">
+    PrimeFaces.locales['tr'] = {
+        closeText: 'kapat',
+        prevText: 'geri',
+        nextText: 'ileri',
+        currentText: 'bugün',
+        monthNames: ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran',
+            'Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'],
+        monthNamesShort: ['Oca','Şub','Mar','Nis','May','Haz',
+            'Tem','Ağu','Eyl','Eki','Kas','Ara'],
+        dayNames: ['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'],
+        dayNamesShort: ['Pz','Pt','Sa','Ça','Pe','Cu','Ct'],
+        dayNamesMin: ['Pz','Pt','Sa','Ça','Pe','Cu','Ct'],
+        weekHeader: 'Hf',
+        firstDay: 1,
+        isRTL: false,
+        showMonthAfterYear: false,
+        yearSuffix: '',
+        month: 'Ay',
+        week: 'Hafta',
+        day: 'Gün',
+        allDayText : 'Tüm Gün'
+    };
+</script>
+<style type="text/css">
+    .value {
+        width: 1000px;
+    }
+</style>
+</h:form>
+
+</h:body>
+</html>

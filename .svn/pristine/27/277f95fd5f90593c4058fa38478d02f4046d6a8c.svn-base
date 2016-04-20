@@ -1,0 +1,120 @@
+package boundary;
+
+import java.util.Date;
+
+import entity.Event;
+import entity.EventType;
+import entity.IndoorEvent;
+import entity.OutdoorEvent;
+import entity.User;
+
+public class EventFacade {
+	
+	private Event event;
+	
+	public EventFacade() {
+		
+	}
+	
+	public Event getEvent() {
+		return event;
+	}
+	
+	public void setEvent(Event e) {
+		this.event=e;
+	}
+	
+	public EventFacade(Event e) {
+		event=e;
+	}
+	
+	public String getTitle() {
+		return event.getTitle();
+	}
+	
+	public void setTitle(String title) {
+		event.setTitle(title);
+	}
+	
+	
+	public String getDescription() {
+		return event.getDescription();
+	}
+	
+	public void setDescription(String description) {
+		event.setDescription(description);
+	}
+	
+	public Date getStartDate() {
+		return event.getStartDate();
+	}
+	
+	public void setStartDate(Date startDate) {
+		event.setStartDate(startDate);
+	}
+	
+	public Date getEndDate() {
+		return event.getEndDate();
+	}
+	
+	public void setEndDate(Date endDate) {
+		event.setEndDate(endDate);
+	}
+	
+	public String getVisibility() {
+		return event.getVisibility();
+	}
+	
+	public void setVisibility(String visibility) {
+		event.setVisibility(visibility);
+	}
+	
+	public String getLocation() {
+		return event.getLocation();
+	}
+	
+	public void setLocation(String location) {
+		event.setLocation(location);
+	}
+	
+	public String getWeather() {
+		if(event instanceof OutdoorEvent) 
+			return ((OutdoorEvent)event).getWeather();
+		return "not available for indoor events";
+		
+	}
+	
+	public void setWeather(String weather) {
+		if(event instanceof OutdoorEvent) 
+			((OutdoorEvent)event).setWeather(weather);
+	}
+	
+	public String getBadWeatherCondition() {
+		if(event instanceof OutdoorEvent) 
+			return ((OutdoorEvent)event).getBadWeatherCondition();
+		return "not available for indoor events";
+	}
+	
+	public void setBadWeatherCondition(String weatherCondition) {
+		if(event instanceof OutdoorEvent) 
+			((OutdoorEvent)event).setBadWeatherCondition(weatherCondition);
+	}
+		
+	public void setType(String type) {
+		
+	}
+	
+	public String getType() {
+		if(event instanceof IndoorEvent)
+			return EventType.INDOOR.getType();
+		else if(event instanceof OutdoorEvent)
+			return EventType.OUTDOOR.getType();
+		return EventType.INDOOR.getType();
+	}
+		
+	public User getOrganizerUser() {
+		return event.getOrganizerUser();
+	}
+	
+
+}

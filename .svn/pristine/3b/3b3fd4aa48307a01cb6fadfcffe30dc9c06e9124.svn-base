@@ -1,0 +1,210 @@
+package control;
+
+
+import java.io.Serializable;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+
+import entity.Event;
+import entity.EventType;
+import entity.IndoorEvent;
+import entity.NotificationType;
+import entity.OutdoorEvent;
+import entity.User;
+import exception.InvalidDateException;
+import exception.NotCreatorException;
+
+
+@Stateless
+public class EventManager implements Serializable {
+	
+	private static final long serialVersionUID = 1L;
+
+		@PersistenceContext(unitName = "meteoCalPU")
+	    EntityManager em;
+
+	 	@EJB UserManager um;
+	 	@EJB WeatherManager wm;
+	    
+	    public void create(Event entity) throws InvalidDateException {
+	    	//sets the organizer user
+	    	entity.setOrganizerUser(um.getLoggedUser());
+	    	//sets the weather of the event
+	    	
+	    	//if the start date is greater than the end date, throws an exception
+	    	if(entity.getStartDate().getTime()>entity.getEndDate().getTime()) {
+	    		throw new InvalidDateException("invalid date");
+	    	}
+	        em.persist(entity);
+	    }
+	    
+	    public void createIndoorEvent(IndoorEvent entity) throws InvalidDateException {
+	    	//sets the organizer user
+	    	entity.setOrganizerUser(um.getLoggedUser());
+	    	//sets the weather of the event
+	    	
+	    	//if the start date is greater than the end date, throws an exception
+	    	if(entity.getStartDate().getTime()>entity.getEndDate().getTime()) {
+	    		throw new InvalidDateException("invalid date");
+	    	}
+	        em.persist(entity);
+	    }
+	    
+	    public void createOutdoorEvent(OutdoorEvent entity) throws InvalidDateException {
+	    	//sets the organizer user
+	    	entity.setOrganizerUser(um.getLoggedUser());
+	    	//sets the weather of the event
+	    	entity.setWeather(wm.getWeatherData(entity.getLocation(), entity.getStartDate()));
+	    	//if the start date is greater than the end date, throws an exception
+	    	if(entity.getStartDate().getTime()>entity.getEndDate().getTime()) {
+	    		throw new InvalidDateException("invalid date");
+	    	}
+	        em.persist(entity);
+	    }
+
+	    /**
+	     * remove the specified event
+	     * @param e event
+	     * @throws Exception if the user is not authorized
+	     */
+	    public void remove(Event e) throws NotCreatorException {
+	    	User organizerUser=( (TypedQuery<User>) em.createQuery(
+        		"SELECT e.organizerUser FROM Event e WHERE e=:event").setParameter("event", e) ).getSingleResult();
+	    	//if he's the organizer
+	    	if(organizerUser.getId()==um.getLoggedUser().getId()) {
+
+	    		em.createQuery("DELETE FROM Notification n WHERE n.event=:e")
+	    		.setParameter("e", e).executeUpdate();
+	    			    		
+	    		em.createQuery("DELETE FROM Event e WHERE e.id=:id")
+	    		.setParameter("id", e.getId()).executeUpdate();
+	    	}
+	    	//otherwise shows an error
+	    	else {
+	    		throw new NotCreatorException("you're not the creator!");
+	    	}
+	    }
+
+	    	    
+	    public void updateWeather(OutdoorEvent e) {
+	    	em.merge(e);
+	    }
+	    
+	    /**
+	     * update the given event 
+	     * storing it in the database 
+	     * @param e the event
+	     * @throws InvalidDateException 
+	     * @throws Exception if the user is not authorized
+	     */
+	    public void updateEvent(Event e) throws NotCreatorException, InvalidDateException {
+	    	if(e.getOrganizerUser().getId()==um.getLoggedUser().getId()) {	    		
+	    		//if the start date is greater than the end date, throws an exception
+		    	if(e.getStartDate().getTime()>e.getEndDate().getTime()) {
+		    		throw new InvalidDateException("invalid date");
+		    	}
+		    	if(e instanceof OutdoorEvent) {
+		    		((OutdoorEvent) e).setWeather(wm.getWeatherData(e.getLocation(), e.getStartDate()));
+		    	}
+	    		//updates the event
+	    		em.merge(e);
+	    	}
+	    	else
+	    		throw new NotCreatorException("your're not the creator!");
+	    }
+
+	    /**
+	     * find the event  by id
+	     * @param id id of the event
+	     * @return
+	     */
+	    public Event find(int id) {
+	        return em.find(Event.class, id);
+	    }
+	    
+	    public List<Event> findAll() {
+	    	TypedQuery<Event> tq=(TypedQuery<Event>) em.createQuery(
+	        		"SELECT e FROM Event e");
+	        return tq.getResultList();
+	    }
+
+	    public List<OutdoorEvent> findlAllOutdoorEvents() {
+	    	TypedQuery<OutdoorEvent> tq=(TypedQuery<OutdoorEvent>) em.createQuery(
+	    			"SELECT e FROM OutdoorEvent e");
+	    	return tq.getResultList();
+	    }
+	    /**
+	     * loads the events created by
+	     * the current user
+	     * @return the list of events created
+	     */
+	    public List<Event> loadCreatedEvents() {
+	    	return this.loadEventsByUser(um.getLoggedUser());
+	    }
+	    
+	    public List<OutdoorEvent> loadOutdoorEvents(User u) {
+	    	TypedQuery<OutdoorEvent> tq=(TypedQuery<OutdoorEvent>) em.createQuery(
+	    			"SELECT e FROM OutdoorEvent e WHERE e.organizerUser=:user").setParameter("user", u);
+	    	return tq.getResultList();
+	    }
+	    
+	    public List<IndoorEvent> loadIndoorEvents(User u) {
+	    	TypedQuery<IndoorEvent> tq=(TypedQuery<IndoorEvent>) em.createQuery(
+	    			"SELECT e FROM IndoorEvent e WHERE e.organizerUser=:user").setParameter("user", u);
+	    	return tq.getResultList();
+	    }
+	    
+	    /**
+	     * loads the outdoor events by the user
+	     * @param user user 
+	     * @return the outdoor events
+	     */
+	    public List<Event> loadOutdoorEventsByUser(User user) {
+	    	TypedQuery<Event> tq=(TypedQuery<Event>) em.createQuery(
+	        		"SELECT e FROM Event e WHERE  e.organizerUser=:user and e.indoorOutdoor=:type")
+	        		.setParameter("user", user).setParameter("type", EventType.OUTDOOR.getType());
+	    	System.out.println(tq);
+	        return tq.getResultList();
+	    }
+	    
+		public List<User> loadNotifiedUsers(Event calendarEvent) {
+			TypedQuery<User> tq=(TypedQuery<User>) em.createQuery(
+	        		"SELECT n.user FROM Notification n WHERE  n.event=:event and n.type=:type")
+	        		.setParameter("event", calendarEvent)
+	        		.setParameter("type", NotificationType.INVITATION.getType());
+	        return tq.getResultList();
+		}
+	    /**
+	     * loads the events by the user
+	     * @param user user 
+	     * @return the list of events
+	     */
+	    public List<Event> loadEventsByUser(User user) {
+	    	TypedQuery<Event> tq=(TypedQuery<Event>) em.createQuery(
+	        		"SELECT e FROM Event e WHERE  e.organizerUser=:user")
+	        		.setParameter("user", user);
+	    	System.out.println(tq);
+	        return tq.getResultList();
+	    }
+	    
+	    /**
+	     * 
+	     * @param calendarEvent
+	     * @return
+	     */
+
+		
+
+		public void setEm(EntityManager mock) {
+			// TODO Auto-generated method stub
+			em=mock;
+		}
+	    
+}

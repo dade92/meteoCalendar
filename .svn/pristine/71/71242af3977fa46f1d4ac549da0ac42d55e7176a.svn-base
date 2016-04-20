@@ -1,0 +1,64 @@
+package bean;
+
+import java.io.Serializable;
+import java.util.List;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
+import javax.ejb.Stateful;
+import javax.faces.application.FacesMessage;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.SessionScoped;
+import javax.faces.bean.ViewScoped;
+import javax.faces.context.FacesContext;
+
+import org.primefaces.event.SelectEvent;
+import org.primefaces.event.UnselectEvent;
+
+import control.InvitationManager;
+import control.NotificationManager;
+import control.UserManager;
+import entity.Notification;
+import entity.User;
+import entity.Event;
+
+@ManagedBean
+@ViewScoped
+public class NotificationView implements Serializable {
+    
+	private static final long serialVersionUID = 1L;
+
+	@EJB
+    private NotificationManager nm;
+	@EJB
+	private UserManager um;
+	
+	@EJB
+	private InvitationManager im;
+	
+	private List<Notification> notifications;
+	
+     
+	@PostConstruct
+    public void init() {
+        notifications=nm.findNewInvitation(um.getLoggedUser());	
+    }
+	
+ 
+    public List<Notification> getNotifications() {
+    	return notifications;
+    }
+    
+    public void setNotifications(List<Notification> notifications) {
+    	this.notifications=notifications;
+    }
+    
+    public void acceptInvitation(Notification n) {
+    	im.createInvitation(um.getLoggedUser(), n.getEvent());
+    	nm.removeNotification(n);
+    }
+    
+    public void refuseInvitation(Notification n) {
+    	nm.removeNotification(n);
+    }
+}

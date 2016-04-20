@@ -1,0 +1,53 @@
+package control;
+
+
+import java.security.Principal;
+
+import javax.ejb.Stateless;
+import javax.faces.application.FacesMessage;
+import javax.faces.context.FacesContext;
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+
+import entity.User;
+
+@Stateless
+public class UserManager {
+	
+    @PersistenceContext
+    EntityManager em;
+    
+    @Inject
+    Principal principal;
+
+    public void createUser(User user) {
+        em.persist(user);
+    }
+    
+    public String checkUserFields(String username,String password) {
+    	FacesContext context = FacesContext.getCurrentInstance();
+    	HttpServletRequest request = (HttpServletRequest) context.getExternalContext().getRequest();
+    	try {
+    		request.login(username, password);
+    	} catch (ServletException e) {
+            context.addMessage(null, new FacesMessage("Login failed."));
+            return "errorPage";
+        } 
+    	return "/user/mainPage";
+    }
+
+    public User loadUserByUsername(String username) {
+        TypedQuery<User> tq=em.createQuery("SELECT u FROM user WHERE USERNAME="+username,User.class);
+        return (User) tq;
+    }
+    
+    public User loadUserById(int id) {
+        TypedQuery<User> tq=em.createQuery("SELECT u FROM user WHERE ID="+id,User.class);
+        return (User) tq;
+    }
+
+}

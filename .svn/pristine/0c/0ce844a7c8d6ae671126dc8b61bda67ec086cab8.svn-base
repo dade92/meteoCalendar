@@ -1,0 +1,39 @@
+package control;
+
+import javax.ejb.Stateless;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+
+import entity.Notification;
+import entity.User;
+import entity.Event;
+
+import java.util.List;
+
+import entity.User;
+
+@Stateless
+public class NotificationManager {
+	
+	@PersistenceContext(unitName = "meteoCalPU")
+    EntityManager em; 	
+    
+    public void createNotification(Notification n) {
+    	em.persist(n);
+    }
+    
+    /**
+     * finds the notifications related to a user
+     * @param user user
+     * @return the notifications
+     */
+    public List<Notification> findNotificationsByUser(User user) {
+    	TypedQuery<Notification> tq=(TypedQuery<Notification>) em.createQuery(
+        		"SELECT n FROM Notification n WHERE  n.user=:user")
+        		.setParameter("user", user);
+        return tq.getResultList();
+    }
+        
+
+}

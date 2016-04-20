@@ -1,0 +1,20 @@
+package control;
+
+import javax.ejb.Stateless;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import entity.User;
+import entity.Event;
+
+import java.util.List;
+
+@Stateless
+public class NotificationManager {
+	
+    @PersistenceContext
+    EntityManager em; 	
+    
+    
+
+}

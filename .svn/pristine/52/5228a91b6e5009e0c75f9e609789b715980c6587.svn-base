@@ -1,0 +1,156 @@
+package control;
+
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+
+import entity.Event;
+import entity.EventType;
+import entity.NotCreatorException;
+import entity.User;
+
+
+@Stateless
+public class EventManager implements Serializable {
+	
+	private static final long serialVersionUID = 1L;
+
+		@PersistenceContext(unitName = "meteoCalPU")
+	    private EntityManager em;
+
+	 	@EJB
+	 	private UserManager um;
+	 	@EJB
+	 	private WeatherManager wm;
+	    
+	    public void create(Event entity) {
+	    	entity.setOrganizerUser(um.getLoggedUser());
+	    	//gets the weather forecast if the event is outdoor
+	    	if(entity.getIndoorOutdoor().equals(EventType.OUTDOOR.getType()))
+	    		entity.setWeather(wm.getWeatherData(entity.getLocation(), entity.getStartDate()));
+	        em.persist(entity);
+	    }
+
+	    /**
+	     * remove the specified event
+	     * @param e event
+	     * @throws Exception if the user is not authorized
+	     */
+	    public void remove(Event e) throws NotCreatorException {
+	    	User organizerUser=( (TypedQuery<User>) em.createQuery(
+        		"SELECT e.organizerUser FROM Event e WHERE e=:event").setParameter("event", e) ).getSingleResult();
+	    	//if he's the organizer
+	    	if(organizerUser.getId()==um.getLoggedUser().getId()) {
+
+	    		em.createQuery("DELETE FROM Notification n WHERE n.event=:e")
+	    		.setParameter("e", e).executeUpdate();
+	    			    		
+	    		em.createQuery("DELETE FROM Event e WHERE e.id=:id")
+	    		.setParameter("id", e.getId()).executeUpdate();
+	    	}
+	    	//otherwise shows an error
+	    	else {
+	    		throw new NotCreatorException("you're not the creator!");
+	    	}
+	    }
+	    
+	    /**
+	     * update the given event 
+	     * storing it in the database 
+	     * @param e the event
+	     * @throws Exception if the user is not authorized
+	     */
+	    public void updateEvent(Event e) throws Exception {
+	    	if(e.getOrganizerUser().getId()==um.getLoggedUser().getId())
+	    		em.merge(e);
+	    	else
+	    		throw new Exception();
+	    	/*
+	    	em.createQuery("UPDATE Event e SET e.title=:t,e.startDate=:sd,e.endDate=:ed,e.location=:l,e.visibility=:v"
+	    			+ "e.description=:d,e.badWeatherCondition=:bwc,e.type=:ty")
+	    			.setParameter("t", e.getTitle()).setParameter("sd", e.getStartDate()).setParameter("", value)*/
+	    }
+	    
+	    public void updateWeather(Event e) {
+	    	em.merge(e);
+	    }
+
+	    /**
+	     * find the event  by id
+	     * @param id id of the event
+	     * @return
+	     */
+	    public Event find(int id) {
+	        return em.find(Event.class, id);
+	    }
+
+	    /**
+	     * loads the events created by
+	     * the current user
+	     * @return the list of events created
+	     */
+	    public List<Event> loadCreatedEvents() {
+	    	return this.loadEventsByUser(um.getLoggedUser());
+	    }
+	    
+	    /**
+	     * loads the outdoor events by the user
+	     * @param user user 
+	     * @return the outdoor events
+	     */
+	    public List<Event> loadOutdoorEventsByUser(User user) {
+	    	TypedQuery<Event> tq=(TypedQuery<Event>) em.createQuery(
+	        		"SELECT e FROM Event e WHERE  e.organizerUser=:user and e.indoorOutdoor=:type")
+	        		.setParameter("user", user).setParameter("type", EventType.OUTDOOR.getType());
+	    	System.out.println(tq);
+	        return tq.getResultList();
+	    }
+	    
+	    /**
+	     * loads the events by the user
+	     * @param user user 
+	     * @return the list of events
+	     */
+	    public List<Event> loadEventsByUser(User user) {
+	    	TypedQuery<Event> tq=(TypedQuery<Event>) em.createQuery(
+	        		"SELECT e FROM Event e WHERE  e.organizerUser=:user")
+	        		.setParameter("user", user);
+	    	System.out.println(tq);
+	        return tq.getResultList();
+	    }
+	    
+	    public List<Event> loadEventsByDate(User user,Date date) {
+	    	return null;
+	    }
+
+	    /**
+	     * 
+	     * @param calendarEvent
+	     * @return
+	     */
+		public List<User> loadNotifiedUsers(Event calendarEvent) {
+			TypedQuery<User> tq=(TypedQuery<User>) em.createQuery(
+	        		"SELECT n.user FROM Notification n WHERE  n.event=:event")
+	        		.setParameter("event", calendarEvent);
+	        return tq.getResultList();
+		}
+		
+		/**
+		 * loads all the outdoor events in the database
+		 * @return the list of events
+		 */
+		public List<Event> loadOutdoorEvents() {
+			TypedQuery<Event> tq=(TypedQuery<Event>) em.createQuery(
+	        		"SELECT e FROM Event e WHERE e.indoorOutdoor=:type")
+	        		.setParameter("type", EventType.OUTDOOR.getType());
+	        return tq.getResultList();
+		}
+	    
+}

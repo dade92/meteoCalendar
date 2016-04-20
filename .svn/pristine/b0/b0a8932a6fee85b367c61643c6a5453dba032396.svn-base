@@ -1,0 +1,111 @@
+package bean;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+
+import javax.ejb.EJB;
+import javax.enterprise.context.RequestScoped;
+import javax.enterprise.inject.Model;
+import javax.faces.application.FacesMessage;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ManagedProperty;
+import javax.faces.bean.ViewScoped;
+import javax.faces.context.FacesContext;
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import control.EventManager;
+import control.NotificationManager;
+import entity.Event;
+import entity.EventType;
+import entity.Notification;
+import entity.OutdoorEvent;
+import entity.User;
+import bean.CheckboxView;
+import enumeration.BadWeatherCondition;
+import enumeration.NotificationType;
+import exception.InvalidDateException;
+
+@ManagedBean
+@ViewScoped
+public class EventCreationBean {
+
+	@EJB
+	EventManager evMan;
+	@EJB
+	NotificationManager nm;
+	@ManagedProperty("#{checkboxView}")
+	CheckboxView cbw;
+
+	private OutdoorEvent current;
+
+	private String indoor;
+
+	public EventCreationBean() {
+	}
+
+	public void setCurrent(OutdoorEvent current) {
+		this.current = current;
+	}
+
+	public Event getCurrent() {
+		if (current == null) {
+			current = new OutdoorEvent();
+		}
+		return current;
+	}
+
+	public String createEvent() {
+		System.out.println(cbw.getSelectedUsers());
+		try {
+			evMan.create(current);
+			for (User u : cbw.getSelectedUsers()) {
+				nm.createNotification(u, current, NotificationType.INVITATION,"new invitation");
+			}
+			return "mainPage?faces-redirect=true";
+		} catch (InvalidDateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"", "the dates may be correct");
+		FacesContext.getCurrentInstance().addMessage("msgs", message);
+		return "";
+	}
+
+
+
+	public void setCbw(CheckboxView cbw) {
+		this.cbw = cbw;
+	}
+
+	public CheckboxView getCbw() {
+		return cbw;
+	}
+
+	public String mainPage() {
+		return "mainPage";
+	}
+
+	public String getIndoor() {
+		if (getCurrent().equals("indoor"))
+			indoor = "true";
+		else
+			indoor = "false";
+		return indoor;
+	}
+
+	public void setIndoor(String indoor) {
+		this.indoor = indoor;
+	}
+
+	public BadWeatherCondition[] getBadWeatherCondition() {
+		return BadWeatherCondition.values();
+	}
+
+	public EventType[] getEventType() {
+		return EventType.values();
+	}
+
+}

@@ -1,0 +1,103 @@
+package control;
+
+import javax.ejb.Stateless;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+
+import entity.Notification;
+import entity.NotificationType;
+import entity.User;
+import entity.Event;
+
+import java.util.List;
+
+import entity.User;
+
+@Stateless
+public class NotificationManager {
+	
+	@PersistenceContext(unitName = "meteoCalPU")
+    EntityManager em; 	
+    
+    public void createNotification(Notification n) {
+    	em.persist(n);
+    }
+    
+    /**
+     * creates a notification
+     * @param u
+     * @param e
+     * @param nt
+     */
+    public void createNotification(User u,Event e,NotificationType nt) {
+    	Notification n=new Notification();
+		n.setUser(u);
+		n.setEvent(e);
+		n.setType(nt.getType());
+		em.persist(n);
+    }
+    
+    /**
+     * creates a notification
+     * @param u
+     * @param e
+     * @param nt
+     * @param info
+     */
+    public void createNotification(User u,Event e,NotificationType nt,String info) {
+    	Notification n=new Notification();
+    	n.setUser(u);
+    	n.setEvent(e);
+    	n.setType(nt.getType());
+    	n.setInfo(info);
+    	em.persist(n);
+    }
+    
+    /**
+     * finds the notifications related to a user
+     * @param user user
+     * @return the notifications
+     */
+    public List<Notification> findNotificationsByUser(User user) {
+    	TypedQuery<Notification> tq=(TypedQuery<Notification>) em.createQuery(
+        		"SELECT n FROM Notification n WHERE  n.user=:user")
+        		.setParameter("user", user);
+        return tq.getResultList();
+    }
+    
+    /**
+     * finds the notification related to the user
+     * and to a event
+     * @param user the user
+     * @return the notifications
+     */
+    public List<Notification> findNewInvitation(User user) {
+    	TypedQuery<Notification> tq=(TypedQuery<Notification>) em.createQuery(
+        		"SELECT n FROM Notification n WHERE  n.user=:user and n.type=:type")
+        		.setParameter("user", user).setParameter("type", NotificationType.INVITATION.getType());
+        return tq.getResultList();
+    }
+    
+    public List<Notification> findNewRescheduledEvents(User user) {
+    	TypedQuery<Notification> tq=(TypedQuery<Notification>) em.createQuery(
+        		"SELECT n FROM Notification n WHERE  n.user=:user and n.type=:type")
+        		.setParameter("user", user).setParameter("type", NotificationType.BAD_WEATHER_CONDITION.getType());
+        return tq.getResultList();
+    }
+    
+    /**
+     * removes a notification
+     * @param n
+     */
+    public void removeNotification(Notification n) {
+    	em.remove(em.merge(n));
+    }
+
+	public void setEm(EntityManager mock) {
+		// TODO Auto-generated method stub
+		em=mock;
+	}
+        
+
+}

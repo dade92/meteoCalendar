@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+<h:head>
+	<title>Login Page</title>
+	<style>
+		.panel {
+			width:600px;
+			
+		}
+	</style>
+</h:head>
+<h:body>
+	<p:growl id="msgs" showDetail="true" />
+	<h:form>
+		<p:panel class="panel" header="Login">
+			<p:panelGrid columns="2">
+				<p:outputLabel for="usernameInput" value="Username" />
+				<p:inputText id="usernameInput" value="#{loginBean.username}"
+					required="true" />
+				<p:outputLabel for="passwordInput" value="Password" />
+				<p:password id="passwordInput" value="#{loginBean.password}"
+					required="true" />
+				<p:commandButton value="Login" action="#{loginBean.login()}" />
+			</p:panelGrid>
+			<h:link outcome="registration"
+				value="Register if you don't have an account" />
+		</p:panel>
+	</h:form>
+
+</h:body>
+</html>

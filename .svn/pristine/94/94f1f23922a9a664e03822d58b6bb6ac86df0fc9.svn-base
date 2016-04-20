@@ -1,0 +1,66 @@
+package entity;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+
+@Entity
+public class Notification {
+	
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	@Id
+	private int id;
+	@ManyToOne
+	private User user;
+	@ManyToOne
+	private Event event;
+	private String info;
+	private String type;
+	
+	public Notification() {
+		
+	}
+	
+	public Notification(User user,Event event,String info,String type) {
+		this.user=user;
+		this.event=event;
+		this.info=info;
+		this.type=type;
+	}
+	
+	public String getInfo() {
+		return info;
+	}
+	public void setInfo(String info) {
+		this.info = info;
+	}
+	public String getType() {
+		return type;
+	}
+	public void setType(String type) {
+		this.type = type;
+	}
+	public Event getEvent() {
+		return event;
+	}
+	public void setEvent(Event event) {
+		this.event = event;
+	}
+	public User getUser() {
+		return user;
+	}
+	public void setUser(User user) {
+		this.user = user;
+	}
+	
+	public void setId(int id) {
+		this.id=id;
+	}
+	
+	public int getId() {
+		return id;
+	}
+
+}

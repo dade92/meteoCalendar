@@ -1,0 +1,62 @@
+	package bean;
+
+import java.security.Principal;
+import java.util.List;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
+import javax.ejb.Stateful;
+import javax.enterprise.context.RequestScoped;
+import javax.faces.bean.SessionScoped;
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import control.UserManager;
+import entity.User;
+
+@Named
+@RequestScoped
+public class UserBean {
+	
+    @EJB
+    UserManager um;
+    
+    public UserBean() {
+    }
+
+    
+    public String getUsername() {
+        return um.getLoggedUser().getUsername();
+    }
+    
+    /*
+    public User getLoggedUser() {
+    	return um.getLoggedUser();
+    }
+    
+    public String getFirstname() {
+    	return getLoggedUser().getFirstname();
+    }
+    
+    public String getLastname() {
+    	return getLoggedUser().getLastname();
+    }
+    
+    public String getEmail() {
+    	return getLoggedUser().getEmail();
+    }
+    
+    public boolean getVisibility() {
+    	return getLoggedUser().isVisible();
+    }
+    
+    public void setVisibility(boolean visibility) {
+    	getLoggedUser().setVisible(visibility);
+    }
+    
+    public List<User> getUsers() {
+    	return um.findAll();
+    }
+    */
+    
+}

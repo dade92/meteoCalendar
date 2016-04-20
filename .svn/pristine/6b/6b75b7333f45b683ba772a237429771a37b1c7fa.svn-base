@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	<title>Home</title>
+</h:head>
+<h:body>
+	<h:form>
+    <p:growl id="messages" showDetail="true" />
+
+    <h:panelGrid columnClasses="value">
+        <h3 style="margin-top: 0">User Calendar</h3>
+        <p:schedule id="schedule" value="#{OtherUserScheduleView.lazyEventModel}" 
+        widgetVar="myschedule" timeZone="GMT+2" tooltip="true"/> 
+    </h:panelGrid>
+
+ 
+    <p:dialog widgetVar="eventDialog" header="Event Details" showEffect="clip" hideEffect="clip">
+        <h:panelGrid id="eventDetails" columns="2">
+            <h:outputLabel for="title" value="Title:" />
+            <h:outputText id="title" value="#{OtherUserScheduleView.event.title}" required="true"/>
+ 
+            <h:outputLabel for="from" value="From:" />
+            <h:outputText id="from" value="#{OtherUserScheduleView.event.startDate}" mask="99/99/9999">
+                <f:convertDateTime pattern="dd/MM/yyyy" timeZone="GMT+2"/>
+            </h:outputText>
+ 
+            <h:outputLabel for="to" value="To:" />
+            <h:outputText id="to" value="#{OtherUserScheduleView.event.endDate}" mask="99/99/9999">
+                <f:convertDateTime pattern="dd/MM/yyyy" timeZone="GMT+2"/>
+            </h:outputText>
+ 
+        </h:panelGrid>
+    </p:dialog> 
+    </h:form>
+
+</h:body>
+</html>

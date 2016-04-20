@@ -1,0 +1,103 @@
+package entity;
+
+import java.io.Serializable;
+import java.util.Collection;
+
+import javax.persistence.DiscriminatorColumn;
+import javax.persistence.DiscriminatorType;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.DefaultValue;
+
+@Entity
+@DiscriminatorColumn(discriminatorType=DiscriminatorType.STRING,name="type")
+@Inheritance(strategy=InheritanceType.SINGLE_TABLE)
+public abstract class Event implements  Serializable {
+
+	private static final long serialVersionUID = 2L;
+	@Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+	private int id;
+	@NotNull
+	private String title;
+	private String description;
+	
+	private boolean visible;
+	@NotNull
+	private String location;
+	
+	private User organizerUser;
+	
+	private Collection<User> invitedUsers;
+	
+	public Event() {
+		
+	}
+	
+	public Event(String title,String descr, boolean visible,String location) {
+		this.title=title;
+		this.description=descr;
+		this.visible=visible;
+		this.location=location;
+	}
+	
+	public String getTitle() {
+		return title;
+	}
+	public void setTitle(String title) {
+		this.title = title;
+	}
+	public int getId() {
+		return id;
+	}
+	public void setId(int id) {
+		this.id = id;
+	}
+	public String getDescription() {
+		return description;
+	}
+	public void setDescription(String description) {
+		this.description = description;
+	}
+	public boolean isVisible() {
+		return visible;
+	}
+	public void setVisible(boolean visible) {
+		this.visible = visible;
+	}
+	public String getLocation() {
+		return location;
+	}
+	public void setLocation(String location) {
+		this.location = location;
+	}
+	@ManyToOne
+	@JoinColumn(name="id")
+	public User getOrganizerUser() {
+		return organizerUser;
+	}
+	public void setOrganizerUser(User organizerUser) {
+		this.organizerUser = organizerUser;
+	}
+	@JoinTable(
+			name="invitation",
+			joinColumns=
+	        	@JoinColumn(name="id", referencedColumnName="user_id"),
+	        inverseJoinColumns=
+	        	@JoinColumn(name="id", referencedColumnName="event_id"))
+	public Collection<User> getInvitedUsers() {
+		return invitedUsers;
+	}
+	
+	
+
+}

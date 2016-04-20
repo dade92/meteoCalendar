@@ -1,0 +1,70 @@
+package control;
+
+import java.security.Principal;
+
+import javax.ejb.Stateless;
+import javax.faces.application.FacesMessage;
+import javax.faces.context.FacesContext;
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+
+import entity.Event;
+
+
+@Stateless
+public class EventManager {
+	
+    @PersistenceContext
+    EntityManager em;
+    @Inject
+    Principal principal;
+
+    /**
+     * creates a new event
+     * @param event the event
+     */
+    public void createEvent(Event event) {
+        em.persist(event);
+    }
+    
+    /**
+     * loads the event by his date
+     * @param date date of the event
+     * @return the event
+     */
+    public Event loadEventByDate(String date) {
+    	return null;
+    }
+    
+    /**
+     * loads the event by id
+     * @param id event's id
+     * @return event
+     */
+    public Event loadEventById(int id) {
+    	return null;
+    }
+    
+    /**
+     * loads the events created 
+     * by another user if visible
+     * @param username username
+     * @return the events
+     */
+    public Event loadEventIfVisible(String username) {
+    	return null;
+    }
+    
+    /**
+     * loads the event by his creator
+     * @param username creator's username
+     * @return the events created
+     */
+    public Event loadEventByCreator(String username) {
+    	return em.find(Event.class, principal.getName());
+    }
+ 
+}

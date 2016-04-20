@@ -1,0 +1,10 @@
+package entity;
+
+public enum BadWeatherCondition {
+	
+	SUNNY,
+	CLOUDY,
+	RAINY,
+	SNOWY;
+
+}

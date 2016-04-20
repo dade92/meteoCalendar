@@ -1,0 +1,115 @@
+package bean;
+
+import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
+import javax.faces.application.ConfigurableNavigationHandler;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ViewScoped;
+import javax.faces.context.FacesContext;
+
+import control.DateManager;
+import control.EventManager;
+import control.InvitationManager;
+import control.NotificationManager;
+import control.UserManager;
+import entity.Event;
+import entity.InviteNotification;
+import entity.Notification;
+import entity.RescheduledNotification;
+import entity.User;
+
+@ManagedBean
+@ViewScoped
+public class NotificationView implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+
+	@EJB
+	private NotificationManager nm;
+	@EJB
+	private UserManager um;
+	@EJB
+	private InvitationManager im;
+	@EJB
+	private EventManager em;
+
+	private List<InviteNotification> invitations;
+
+	private List<RescheduledNotification> rescheduledEvents;
+
+	SimpleDateFormat format;
+
+	@PostConstruct
+	public void init() {
+		User user = um.getLoggedUser();
+		invitations = nm.findNewInvitation(user);
+		this.rescheduledEvents = nm.findNewRescheduledEvents(user);
+		format = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+	}
+
+	public List<InviteNotification> getInvitations() {
+		return invitations;
+	}
+
+	public void setinvitations(List<InviteNotification> notifications) {
+		this.invitations = notifications;
+	}
+
+	public void acceptInvitation(Notification n) {
+		im.createInvitation(um.getLoggedUser(), n.getEvent());
+		nm.removeNotification(n);
+		reload();
+	}
+
+	public void refuseInvitation(Notification n) {
+		nm.removeNotification(n);
+		reload();
+	}
+
+	public void acceptProposedDate(Notification n) {
+		Event e = n.getEvent();
+
+		try {
+			// parse the date
+			Date newStartDate = format.parse(n.getInfo());
+			// obtains the end date calculating the delta of the dates
+			Date newEndDate = DateManager.getEndDate(e.getStartDate(),
+					newStartDate, e.getEndDate());
+			// updates the event and removes the notification
+			e.setStartDate(newStartDate);
+			e.setEndDate(newEndDate);
+			em.updateEvent(e,true);
+			nm.removeNotification(n);
+			// reload the page
+			reload();
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	}
+
+	public void refuseProposedDate(Notification n) {
+		nm.removeNotification(n);
+		reload();
+	}
+
+	private void reload() {
+		ConfigurableNavigationHandler cnh = (ConfigurableNavigationHandler) FacesContext
+				.getCurrentInstance().getApplication().getNavigationHandler();
+		cnh.performNavigation("notificationPage?faces-redirect=true");
+	}
+
+	public List<RescheduledNotification> getRescheduledEvents() {
+		return rescheduledEvents;
+	}
+
+	public void setRescheduledEvents(List<RescheduledNotification> rescheduledEvents) {
+		this.rescheduledEvents = rescheduledEvents;
+	}
+
+}

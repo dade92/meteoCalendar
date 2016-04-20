@@ -1,0 +1,107 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	<title>Home</title>
+</h:head>
+<h:body>
+	
+	<h:form id="form">
+	<p:growl id="msgs" showDetail="true" />
+
+    <p:growl id="messages" showDetail="true" />
+
+    <h:panelGrid columnClasses="value">
+        <h3 style="margin-top: 0">User Calendar</h3>
+        <p:schedule id="schedule" value="#{otherUserScheduleView.lazyEventModel}" 
+        widgetVar="myschedule" timeZone="GMT+2" tooltip="true" draggable="false" resizable="false">
+ 
+            <p:ajax event="eventSelect" listener="#{otherUserScheduleView.onEventSelect}" update="eventDetails" oncomplete="PF('eventDialog').show();" />
+ 
+        </p:schedule>
+
+    </h:panelGrid>
+    
+
+ 
+    <p:dialog widgetVar="eventDialog" header="Event Details" showEffect="clip" hideEffect="clip">
+        
+		<h:panelGrid id="eventDetails" columns="2">
+			<h:outputLabel for="title" value="Title:" />
+            <h:outputText id="title" value="#{otherUserScheduleView.calendarEvent.title}" required="true"/>
+            
+			<h:outputLabel for="from" value="From:" />
+			<p:inputMask id="from" value="#{otherUserScheduleView.calendarEvent.startDate}"
+				mask="99/99/9999">
+				<f:convertDateTime pattern="dd/MM/yyyy" timeZone="GMT+2" />
+			</p:inputMask>
+			
+			<h:outputLabel for="to" value="To:" />
+            <p:inputMask id="to" value="#{otherUserScheduleView.calendarEvent.endDate}" mask="99/99/9999">
+                <f:convertDateTime pattern="dd/MM/yyyy" timeZone="GMT+2"/>
+            </p:inputMask>
+			
+			<h:outputLabel  value="Description:" />
+			<h:outputText value="#{otherUserScheduleView.calendarEvent.description}" />
+				
+			<h:outputLabel value="Location:" />
+			<h:outputText value="#{otherUserScheduleView.calendarEvent.location}" />
+			
+            <p:outputLabel for="visible">Visibility:</p:outputLabel>
+			<h:outputText id="visible"
+					value="#{otherUserScheduleView.calendarEvent.visibility}" style="width:125px"/>
+			
+			<p:outputLabel for="indoorOutdoor">Indoor/Outdoor:</p:outputLabel>
+			<h:outputText id="indoorOutdoor" style="width:125px"
+					value="#{otherUserScheduleView.calendarEvent.indoorOutdoor}"/>
+				
+			<h:outputLabel for="indoorOutdoor" value="Type:" />
+			<h:outputText value="#{otherUserScheduleView.calendarEvent.indoorOutdoor}" />
+			
+			<h:outputLabel value="invited users:"/>
+			<p:dataScroller value="#{otherUserScheduleView.calendarEvent.invitedUsers}" var="user" chunkSize="2">
+				#{user.username}
+			</p:dataScroller>
+			
+		</h:panelGrid>
+
+    </p:dialog>    
+
+</h:form>
+ 
+<script type="text/javascript">
+    PrimeFaces.locales['tr'] = {
+        closeText: 'kapat',
+        prevText: 'geri',
+        nextText: 'ileri',
+        currentText: 'bugün',
+        monthNames: ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran',
+            'Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'],
+        monthNamesShort: ['Oca','Şub','Mar','Nis','May','Haz',
+            'Tem','Ağu','Eyl','Eki','Kas','Ara'],
+        dayNames: ['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'],
+        dayNamesShort: ['Pz','Pt','Sa','Ça','Pe','Cu','Ct'],
+        dayNamesMin: ['Pz','Pt','Sa','Ça','Pe','Cu','Ct'],
+        weekHeader: 'Hf',
+        firstDay: 1,
+        isRTL: false,
+        showMonthAfterYear: false,
+        yearSuffix: '',
+        month: 'Ay',
+        week: 'Hafta',
+        day: 'Gün',
+        allDayText : 'Tüm Gün'
+    };
+</script>
+<style type="text/css">
+    .value {
+        width: 1000px;
+    }
+</style>
+</h:form>
+
+</h:body>
+</html>

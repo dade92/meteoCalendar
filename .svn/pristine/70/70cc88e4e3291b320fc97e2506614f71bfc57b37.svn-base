@@ -1,0 +1,97 @@
+package bean;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ManagedProperty;
+import javax.faces.bean.ViewScoped;
+
+import org.primefaces.event.SelectEvent;
+import org.primefaces.model.DefaultScheduleEvent;
+import org.primefaces.model.LazyScheduleModel;
+import org.primefaces.model.ScheduleEvent;
+import org.primefaces.model.ScheduleModel;
+
+import control.EventManager;
+import control.InvitationManager;
+import entity.Event;
+import entity.User;
+
+@ManagedBean
+@ViewScoped
+public class OtherUserScheduleView implements Serializable {
+	
+	private static final long serialVersionUID = 1L;
+	
+	private ScheduleModel lazyEventModel;
+
+	private  ScheduleEvent event = new DefaultScheduleEvent();
+	
+	@EJB
+	private EventManager em;
+	@EJB
+	private InvitationManager im;
+	
+	@ManagedProperty("#{searchUsersCheckboxView}") SearchUsersCheckboxView cbw;
+	
+	@PostConstruct
+	public void init() {
+		
+		final User searchedUser=cbw.getSelectedUser();
+		lazyEventModel=new LazyScheduleModel() {
+            
+			private static final long serialVersionUID = 1L;
+
+			@Override
+            public void loadEvents(Date start, Date end) {
+            	for(Event e:em.loadEventsByUser(searchedUser)) {
+            		//se l'evento è pubblico, lo visualizzo
+            		if(e.getVisibility().equals("public"))
+            			addEvent(new DefaultScheduleEvent(e.getTitle(),e.getStartDate(),e.getEndDate(),e.getId()));
+            		//altrimenti se è privato, faccio vedere la casella senza visualizzarlo
+            		else if(e.getVisibility().equals("private"))
+            			addEvent(new DefaultScheduleEvent("private event",e.getStartDate(),e.getEndDate(),e.getId()));
+        		}
+        		for(Event e:im.loadInvitedEventsByUser(searchedUser)) {
+        			if(e.getVisibility().equals("public"))
+        				addEvent(new DefaultScheduleEvent(e.getTitle(),e.getStartDate(),e.getEndDate()));
+        			else if(e.getVisibility().equals("private"))
+        				addEvent(new DefaultScheduleEvent("private event",e.getStartDate(),e.getEndDate()));
+        		}
+            }   
+        };
+
+	}
+
+	public ScheduleModel getLazyEventModel() {
+		return lazyEventModel;
+	}
+
+	public void setLazyEventModel(ScheduleModel lazyEventModel) {
+		this.lazyEventModel = lazyEventModel;
+	}
+
+	public ScheduleEvent getEvent() {
+		return event;
+	}
+
+	public void setEvent(ScheduleEvent event) {
+		this.event = event;
+	}
+	
+	public SearchUsersCheckboxView getCbw() {
+		return cbw;
+	}
+	
+	public void setCbw(SearchUsersCheckboxView cbw) {
+		this.cbw=cbw;
+	}
+	
+    public void onEventSelect(SelectEvent selectEvent) {
+        event = (ScheduleEvent) selectEvent.getObject();
+    }
+     
+}

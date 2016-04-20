@@ -1,0 +1,75 @@
+package bean;
+
+
+
+import javax.ejb.EJB;
+import javax.enterprise.context.RequestScoped;
+import javax.enterprise.inject.Model;
+import javax.inject.Named;
+
+import control.EventManager;
+import entity.Event;
+import entity.IndoorEvent;
+
+@Model
+public class EventCreationBean {
+    
+    @EJB EventManager evMan;
+
+    private Event current;
+    
+    public EventCreationBean() {
+    }
+
+    public void setCurrent(Event current) {
+        this.current = current;
+    }
+
+    public Event getCurrent() {
+        if (current==null) {
+            current = new IndoorEvent();
+        }
+        return current;
+    }
+    
+    public String createEvent() {
+        evMan.create(current);
+        return "user/mainPage?faces-redirect=true";
+    }
+    
+    public int getCount() {
+        return evMan.count();
+    }
+    
+}
+/**
+@Named(value = "eventCreationBean")
+@RequestScoped
+public class EventCreationBean {
+	
+    @EJB
+    private EventManager em;
+    //QUESTO L' HO LASCIATO EVENT GENERICO, CIOè GENERALIZIAMO A EVENT GENERICO POI NE RITORNIAMO UNO SPECIFICO
+    private Event event;
+
+    public EventCreationBean() {
+    }
+
+    public Event getEvent() {
+    	//RITORNA UN INDOOR EVENT DI DEFAULT POI VEDREMO COME SISTEMARE
+        if (event == null) {
+            return new IndoorEvent();
+        }
+        return event;
+    } 
+    
+
+    public void setEvent(Event event) {
+        this.event = event;
+    }
+
+    public void EventCreation() {
+        em.createEvent(event);
+    }
+
+}*/

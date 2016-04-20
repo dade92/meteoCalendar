@@ -1,0 +1,187 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	<title>Home</title>
+</h:head>
+<h:body>
+
+	<h:form id="form">
+		<p:growl id="msgs" showDetail="true" />
+		
+	  	<p:notificationBar id="not1" styleClass="top" effect="slide"
+			autodisplay="true" widgetVar="nv"> 
+			<p:commandButton value="hide" onclick="PF('nv').hide()"
+				icon="ui-icon-arrow-1-n" />
+			<p:commandButton value="Create a new Event"
+				action="eventCreationPage" immediate="true"/>
+			<p:commandButton value="see Notifications" action="notificationPage" immediate="true" />
+			<p:commandButton value="Search other Users"
+				oncomplete="PF('searchDialog').show();" immediate="true"/>
+			<p:commandButton value="Logout" action="#{loginBean.disconnect()}" immediate="true" />
+			<p:commandButton value="#{userBean.username}" oncomplete="PF('userDetailsDialog').show();" immediate="true" />	
+		</p:notificationBar>
+		
+	<p:toolbar>
+		<f:facet name="left">
+			<p:commandButton value="Create a new Event"
+				action="eventCreationPage" immediate="true"/>
+			<p:commandButton value="see Notifications" action="notificationPage" immediate="true" />
+			<p:commandButton value="Search other Users"
+				oncomplete="PF('searchDialog').show();" immediate="true"/>
+		</f:facet>
+		<f:facet name="right">
+			<p:menuButton value="#{userBean.username}">
+				<p:menuitem value="My details" oncomplete="PF('userDetailsDialog').show();" immediate="true" />
+                <p:menuitem value="Logout" action="#{loginBean.disconnect()}" immediate="true"  />
+			</p:menuButton>
+		</f:facet>
+		</p:toolbar>
+			
+	
+	
+			
+		<!-- scheduler of the user -->
+		<h:panelGrid columnClasses="value">
+			<h3 style="margin-top: 0">#{userBean.username}'s Calendar</h3>
+			<p:schedule id="schedule" value="#{scheduleView.lazyEventModel}"
+				widgetVar="myschedule" timeZone="GMT+2" tooltip="true"
+				draggable="false" resizable="false">
+				<p:ajax event="eventSelect" listener="#{scheduleView.onEventSelect}"
+					update="eventDetails" oncomplete="PF('eventDialog').show();" />
+			</p:schedule>
+		</h:panelGrid>
+
+
+		<!-- dialog that shows the details of an event -->
+		<p:dialog widgetVar="eventDialog" header="Event Details"
+			showEffect="clip" hideEffect="clip">
+
+			<h:panelGrid id="eventDetails" columns="2">
+				<h:outputLabel for="title" value="Title:" />
+				<h:inputText id="title" value="#{scheduleView.calendarEvent.title}"
+					required="true" />
+				<h:outputLabel value="Creator:" />
+				<h:outputText value="#{scheduleView.calendarEvent.organizerUser.username}" />
+
+				<h:outputLabel for="from" value="From:" />
+				<p:inputMask id="from"
+					value="#{scheduleView.calendarEvent.startDate}" mask="99/99/9999">
+					<f:convertDateTime pattern="dd/MM/yyyy" timeZone="GMT+2" />
+				</p:inputMask>
+
+				<h:outputLabel for="to" value="To:" />
+				<p:inputMask id="to" value="#{scheduleView.calendarEvent.endDate}"
+					mask="99/99/9999">
+					<f:convertDateTime pattern="dd/MM/yyyy" timeZone="GMT+2" />
+				</p:inputMask>
+
+				<h:outputLabel value="Description:" />
+				<h:inputText value="#{scheduleView.calendarEvent.description}" />
+
+				<h:outputLabel value="Location:" />
+				<h:inputText value="#{scheduleView.calendarEvent.location}" />
+
+				<h:outputLabel value="visibility:" />
+				<p:selectOneMenu id="visible"
+					value="#{scheduleView.calendarEvent.visibility}"
+					style="width:125px">
+					<f:selectItem itemLabel="Public" itemValue="public" />
+					<f:selectItem itemLabel="Private" itemValue="private" />
+				</p:selectOneMenu>
+
+				<h:outputLabel value="indoorOutdoor:" />
+				<p:selectOneMenu id="indoorOutdoor" style="width:125px"
+					value="#{scheduleView.calendarEvent.indoorOutdoor}">
+					<f:selectItem itemLabel="Indoor" itemValue="indoor" />
+					<f:selectItem itemLabel="Outdoor" itemValue="outdoor" />
+				</p:selectOneMenu>
+
+				<h:outputLabel value="badWeatherCondition:" />
+				<p:selectOneMenu id="badWeatherConditionMenu"
+					value="#{scheduleView.calendarEvent.badWeatherCondition}"
+					style="width:125px">
+					<f:selectItem itemLabel="Sunny" itemValue="sunny" />
+					<f:selectItem itemLabel="Cloudy" itemValue="cloudy" />
+					<f:selectItem itemLabel="Rainy" itemValue="rainy" />
+					<f:selectItem itemLabel="Snowy" itemValue="snowy" />
+				</p:selectOneMenu>
+				
+				<h:outputLabel value="invited Users:" />
+				<p:dataScroller value="#{scheduleView.getNotifications()}"
+					var="user" chunkSize="2">
+					<h:panelGrid columns="1" style="width:100%">
+						<h:outputText value="#{user.username}" />
+					</h:panelGrid>				
+				</p:dataScroller>
+
+				<h:outputLabel value="participating users:" />
+				<p:dataScroller value="#{scheduleView.getInvitations()}"
+					var="user" chunkSize="2">
+					<h:outputText value="#{user.username}" />
+				</p:dataScroller>			
+			</h:panelGrid>
+			<!-- buttons that allow to delete or update the event -->
+			<p:commandButton id="deleteButton" value="Delete"
+				action="#{scheduleView.deleteEvent()}" 
+				oncomplete="PF('eventDialog').hide();" update="msgs"/>
+			<p:commandButton value="Update"
+				action="#{scheduleView.updateEvent()}"
+				oncomplete="PF('eventDialog').hide();" update="msgs"/>
+		</p:dialog>
+
+		<!-- dialog that shows the users -->
+		<p:dialog widgetVar="searchDialog" header="Users" showEffect="clip"
+			hideEffect="clip" width="400">
+			<p:dataTable id="users" var="user"
+				value="#{searchUsersCheckboxView.users}" selectionMode="single"
+				selection="#{searchUsersCheckboxView.selectedUser}" rowKey="#{user.id}">
+				<p:ajax event="rowSelect" listener="#{searchUsersCheckboxView.onRowSelect}"/>
+				<f:facet name="header">
+            		Select a user:
+        		</f:facet>
+				<p:column headerText="username">
+					<h:outputText value="#{user.username}" />
+				</p:column>
+				<p:column headerText="email">
+					<h:outputText value="#{user.email}" />
+				</p:column>
+			</p:dataTable>
+		</p:dialog>
+		
+		<!-- shows the details of the user -->
+		<p:dialog widgetVar="userDetailsDialog" id="userDetailsDialog"
+			header="User Details" showEffect="clip" hideEffect="clip" width="400">
+			<h:panelGrid columns="2" id="userDetailsGrid">
+				<h:outputLabel value="firstname:"/>
+				<h:outputText value="#{userBean.firstname}"/>
+				
+				<h:outputLabel value="lastname:"/>
+				<h:outputText value="#{userBean.lastname}"/>
+				
+				<h:outputLabel value="username:"/>
+				<h:outputText value="#{userBean.username}"/>
+				
+				<h:outputLabel value="email:"/>
+				<h:outputText value="#{userBean.email}"/>
+				
+				<h:outputLabel value="calendar visibility:"/>
+				<p:selectOneMenu id="calVisibility" style="width:125px"
+					value="#{userBean.visibility}">
+					<p:ajax event="valueChange" listener="#{scheduleView.onVisibilityChange}" update="msgs" oncomplete="PF('userDetailsDialog').hide();"/>
+					<f:selectItem itemLabel="Public" itemValue="1" />
+					<f:selectItem itemLabel="Private" itemValue="0" />
+				</p:selectOneMenu>
+			</h:panelGrid>
+		</p:dialog>
+		<style type="text/css">
+.value {
+	width: 1000px;
+}
+</style>
+	</h:form>
+</h:body>
+</html>

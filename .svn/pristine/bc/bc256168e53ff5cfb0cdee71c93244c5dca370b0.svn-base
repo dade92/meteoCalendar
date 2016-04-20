@@ -1,0 +1,104 @@
+package control;
+
+import java.security.Principal;
+import java.util.List;
+
+import javax.ejb.Stateless;
+import javax.faces.application.FacesMessage;
+import javax.faces.context.FacesContext;
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+
+import entity.Group;
+import entity.User;
+
+@Stateless
+public class UserManager {
+	
+    @PersistenceContext(unitName="meteoCalPU")
+	private
+    EntityManager em;
+    
+    @Inject
+    Principal principal;
+
+    /**
+     * create a new user
+     * @param user the user
+     */
+    public void createUser(User user) {
+    	user.setGroupName(Group.USERS);
+        getEm().persist(user);
+    }
+    
+    public String checkUserFields(String username,String password) {
+    	FacesContext context = FacesContext.getCurrentInstance();
+    	HttpServletRequest request = (HttpServletRequest) context.getExternalContext().getRequest();
+    	try {
+    		request.login(username, password);
+        	return "user/mainPage?faces-redirect=true";
+    	} catch (ServletException e) {
+            context.addMessage(null, new FacesMessage("Login failed."));
+        } 
+    	return "errorPage";
+    }
+    
+    /**
+     * get the current user
+     * @return the user
+     */
+    public User getLoggedUser() {
+        TypedQuery<User> tq=(TypedQuery<User>) getEm().createQuery(
+        		"SELECT u FROM User u WHERE  u.username LIKE :username")
+        		.setParameter("username", principal.getName());
+        System.out.println("called the usermanager. user:"+tq.getSingleResult().getUsername());
+        return tq.getSingleResult();
+    }
+    
+    public List<User> findAll() {
+    	TypedQuery<User> query = getEm().createQuery("SELECT u FROM User u WHERE u.id != :userid", User.class);
+    	query.setParameter("userid", this.getLoggedUser().getId());
+        return query.getResultList();
+    }
+
+    /**
+     * loads the user given the username
+     * @param username user's username
+     * @return the user
+     */
+    public User loadUserByUsername(String username) {
+        TypedQuery<User> tq=getEm().createQuery("SELECT u FROM user WHERE NAME="+username,User.class);
+        return (User) tq;
+    }
+    
+    /**
+     * loads the user by id
+     * @param id user's id
+     * @return the user
+     */
+    public User loadUserById(int id) {
+        TypedQuery<User> tq=getEm().createQuery("SELECT u FROM user WHERE ID="+id,User.class);
+        return (User) tq;
+    }
+    
+    /**
+     * updates the given user
+     * @param u the user
+     */
+    public void updateUser(User u) {
+    	getEm().merge(u);
+    }
+
+	public EntityManager getEm() {
+		return em;
+	}
+
+	public void setEm(EntityManager em) {
+		this.em = em;
+	}
+   
+}

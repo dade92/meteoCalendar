@@ -1,0 +1,52 @@
+package test;
+
+import static org.junit.Assert.*;
+
+import java.util.Date;
+import java.util.List;
+
+import javax.ejb.EJB;
+
+import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.asset.EmptyAsset;
+import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import control.EventManager;
+import entity.Event;
+
+@RunWith(Arquillian.class)
+public class EventManagerTest {
+	
+	@EJB EventManager em;
+	
+    @Deployment
+    public static WebArchive createArchiveAndDeploy() {
+        return ShrinkWrap.create(WebArchive.class)
+                .addClass(EventManager.class)
+                .addPackage(EventManager.class.getPackage())
+                .addAsResource("test-persistence.xml", "META-INF/persistence.xml")
+                .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
+    }
+	
+    @Test
+    public void eventManagerShouldBeInjected() {
+    	assertNotNull(em);
+    }
+	
+    @Test
+    public void eventManagerShouldCreateEvents() {
+    	
+    	em.create(new Event("prova","","","",new Date(),new Date(),"indoor"));
+    }
+    
+    @Test
+    public void eventManagerShouldLoadEvents() {
+    	List<Event> events=em.loadCreatedEvents();
+    	assertNotNull(events);
+    }
+
+}

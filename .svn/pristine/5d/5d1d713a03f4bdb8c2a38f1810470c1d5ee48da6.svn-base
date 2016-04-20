@@ -1,0 +1,33 @@
+package test;
+
+import static org.junit.Assert.*;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import entity.User;
+
+public class UserTest {
+	
+	private User user;
+
+	@Before
+	public void setUp() throws Exception {
+		String username="davide";
+    	String password="password";
+    	String firstname="davide";
+    	String lastname="Botti";
+    	String email="davide@hotmail.it";
+    	user = new User(username,password,firstname,lastname,email);
+	}
+
+	@Test
+	public void userShouldBeCorrectlyInitialized() {
+		assertNotNull(user);
+		assertNotNull(user.getUsername());
+		assertNotNull(user.getFirstname());
+		assertNotNull(user.getLastname());
+		assertNotNull(user.getEmail());
+	}
+
+}

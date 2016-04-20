@@ -1,0 +1,47 @@
+package control;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
+
+import javax.ejb.EJB;
+import javax.ejb.Schedule;
+import javax.ejb.Singleton;
+import javax.ejb.Stateless;
+import javax.json.JsonObject;
+
+import entity.Event;
+import entity.User;
+
+@Singleton
+public class Rescheduler {
+	
+	@EJB NotificationManager nm;
+	@EJB UserManager um;
+	@EJB EventManager em;
+	@EJB WeatherManager wm;
+	@EJB InvitationManager im;
+	private List<Event> tomorrowEvents;
+	
+	@Schedule(hour = "*", minute = "*", second = "*/5", persistent=false)
+	public void checkForBadWeather() {
+		
+		JsonObject jsonObject;
+		
+		User currentUser=um.getLoggedUser();
+		Calendar calendar=new GregorianCalendar();
+		calendar.add(Calendar.DAY_OF_MONTH, 1);
+		Date tomorrow=calendar.getTime();
+		
+		//gets the events of the user planned for tomorrow
+		tomorrowEvents=im.loadEventsByDate(currentUser, calendar.getTime());
+		this.tomorrowEvents.addAll(em.loadEventsByDate(currentUser, tomorrow));
+		
+		//gets the weather of tomorrow
+		System.out.println(wm.getWeatherData("erba"));
+		
+				
+	}
+	
+}

@@ -1,0 +1,52 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <title>EventCreationPage</title>
+    </h:head>
+    <h:body>
+        <h:form>
+            <p:panel header="EventCreation Form">
+                <h:panelGrid columns="3" id="evGrid">
+                    <h:outputLabel for="title">Title:</h:outputLabel>
+                    <p:inputText id="title" value="#{eventCreationBean.event.title}">
+                        <p:ajax update="titlemsg"/>
+                    </p:inputText>
+                    <p:message id="titlemsg" for="title" />
+                    
+                    <h:outputLabel for="description">Description:</h:outputLabel>
+                    <p:inputText id="description" value="#{eventCreationBean.event.description}">
+                        <p:ajax update="descriptionmsg"/>
+                    </p:inputText>
+                    <p:message id="descriptionmsg" for="description" />
+                    
+                    <h:outputLabel for="location">Location:</h:outputLabel>
+                    <p:inputText id="location" value="#{eventCreationBean.event.location}" >
+                        <p:ajax update="locationmsg"/>
+                    </p:inputText>
+                    <p:message id="locationmsg" for="location" />
+                    
+                    <h:outputLabel for="inOut">Indoor/outdoor:</h:outputLabel>
+                    <p:selectOneMenu id="inOut" value="#{selectOneMenuView.inOut}" style="width:125px">
+            			<f:selectItem itemLabel="Indoor" itemValue="Indoor" />
+           				<f:selectItem itemLabel="Outdoor" itemValue="Outdoor" />
+        			</p:selectOneMenu>
+        			<p:message id="inOutmsg" for="inOut" />
+        			
+        			<h:outputLabel for="visible">Visibility:</h:outputLabel>
+                    <p:selectOneMenu id="visible" value="#{selectOneMenuView.visible}" style="width:125px">
+            			<f:selectItem itemLabel="Public" itemValue="Public" />
+           				<f:selectItem itemLabel="Private" itemValue="Private" />
+        			</p:selectOneMenu>
+        			<p:message id="visiblemsg" for="visible" />
+                </h:panelGrid>
+                <p:commandButton value="Create" update="evGrid"
+                                 action="#{eventCreationBean.event.EventCreation()}" />
+
+            </p:panel>
+        </h:form>
+    </h:body>
+</html>

@@ -1,0 +1,28 @@
+package entity;
+
+import entity.Event;
+
+import java.io.Serializable;
+
+import javax.persistence.*;
+
+/**
+ * Entity implementation class for Entity: IndoorEvent
+ *
+ */
+@Entity
+@DiscriminatorValue(value = "indoor")
+public class IndoorEvent extends Event implements Serializable {
+
+	
+	private static final long serialVersionUID = 1L;
+
+	public IndoorEvent() {
+		super();
+	}
+	
+	public IndoorEvent(String title,String descr, String visible,String location) {
+		super(title,descr,visible,location);
+	}
+   
+}

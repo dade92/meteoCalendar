@@ -1,0 +1,71 @@
+package test;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+import javax.ejb.EJB;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.asset.EmptyAsset;
+import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import control.PasswordEncrypter;
+import control.UserManager;
+import entity.Group;
+import entity.User;
+
+@RunWith(Arquillian.class)
+public class UserManagerTest {
+	
+	@EJB UserManager um;
+	
+        
+    @Deployment
+    public static WebArchive createArchiveAndDeploy() {
+        return ShrinkWrap.create(WebArchive.class)
+                .addClass(UserManager.class)
+                .addPackage(User.class.getPackage())
+                .addAsResource("test-persistence.xml", "META-INF/persistence.xml")
+                .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
+    }
+       
+    @Test
+    public void UserManagerShouldBeInjected() {
+        assertNotNull(um);
+    }
+    
+    @Test
+    public void newUsersShouldBelongToUserGroupAndSavedOnce() {
+        User newUser = new User();
+        um.createUser(newUser);
+        assertThat(newUser.getGroupName(), is(Group.USERS));
+        verify(um.getEm(),times(1)).persist(newUser);
+    }
+    
+    @Test
+    public void passwordsShouldBeEncryptedOnDB() {
+        User newUser = new User();
+        String email = "prova@hotmail.com";
+        String password = "password";
+        newUser.setEmail(email);
+        newUser.setUsername("Davide");
+        newUser.setPassword(password);
+        um.createUser(newUser);
+        User foundUser = um.loadUserByUsername("Davide");
+        assertNotNull(foundUser);
+        assertThat(foundUser.getPassword(),is(PasswordEncrypter.encryptPassword(password)));
+    }
+
+}

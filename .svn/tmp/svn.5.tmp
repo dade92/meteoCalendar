@@ -1,0 +1,77 @@
+package bean;
+
+
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+
+import javax.ejb.EJB;
+import javax.enterprise.context.RequestScoped;
+import javax.enterprise.inject.Model;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ManagedProperty;
+import javax.faces.bean.ViewScoped;
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import control.EventManager;
+import control.NotificationManager;
+import entity.Event;
+import entity.IndoorEvent;
+import entity.Notification;
+import entity.User;
+import bean.CheckboxView;
+
+@ManagedBean
+@ViewScoped
+public class EventCreationBean {
+    
+    @EJB EventManager evMan;
+    @EJB NotificationManager nm;
+    @ManagedProperty("#{checkboxView}") CheckboxView cbw;
+    
+    private Event current;
+    
+    public EventCreationBean() {
+    }
+
+    public void setCurrent(Event current) { 
+        this.current = current;
+    }
+
+    public Event getCurrent() {
+        if (current==null) {
+            current = new Event();
+        }
+        return current;
+    }
+    
+    public String createEvent() {
+    	System.out.println(cbw.getSelectedUsers());
+    	List<Notification> not=new ArrayList<Notification>();
+    	evMan.create(current);
+    	for(User u:cbw.getSelectedUsers()) {
+    		Notification n=new Notification();
+    		n.setUser(u);
+    		n.setEvent(current);
+    		n.setType("event invitation");
+    		nm.createNotification(n);
+    	}
+    	//current.setEventNotifications(not);
+        
+        return "mainPage?faces-redirect=true";
+    }
+    
+    
+    public void setCbw(CheckboxView cbw) {
+    	this.cbw=cbw;
+    }
+    
+    public CheckboxView getCbw() {
+    	return cbw;
+    }
+    
+    
+}

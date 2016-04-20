@@ -1,0 +1,70 @@
+package control;
+
+
+import java.io.Serializable;
+import java.security.Principal;
+import java.util.List;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.faces.application.FacesMessage;
+import javax.faces.context.FacesContext;
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+
+import entity.Event;
+import entity.User;
+
+
+@Stateless
+public class EventManager implements Serializable {
+	
+	private static final long serialVersionUID = 1L;
+
+		@PersistenceContext(unitName = "meteoCalPU")
+	    private EntityManager em;
+
+	 	@EJB
+	 	private UserManager um;
+	    
+	    public void create(Event entity) {
+	    	entity.setOrganizerUser(um.getLoggedUser());
+	        em.persist(entity);
+	    }
+
+	    public void delete(Event e) {
+	    	em.createQuery("DELETE e FROM Event");
+	    }
+	    public void edit(Event entity) {
+	        em.merge(entity);
+	    }
+
+	    public void remove(Event entity) {
+	        em.remove(em.merge(entity));
+	    }
+
+	    public Event find(Object id) {
+	        return em.find(Event.class, id);
+	    }
+
+	    public List<Event> loadCreatedEvents() {
+	    	TypedQuery<Event> tq=(TypedQuery<Event>) em.createQuery(
+	        		"SELECT e FROM Event e WHERE  e.organizerUser=:user")
+	        		.setParameter("user", um.getLoggedUser());
+	        return tq.getResultList();
+	    }
+
+	    public int count() {
+	        javax.persistence.criteria.CriteriaQuery cq = em.getCriteriaBuilder().createQuery();
+	        javax.persistence.criteria.Root<Event> rt = cq.from(Event.class);
+	        cq.select(em.getCriteriaBuilder().count(rt));
+	        javax.persistence.Query q = em.createQuery(cq);
+	        return ((Long) q.getSingleResult()).intValue();
+	    }
+	    
+}

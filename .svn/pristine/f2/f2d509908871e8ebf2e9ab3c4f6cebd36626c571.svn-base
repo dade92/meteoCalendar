@@ -1,0 +1,112 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	<title>Create an event</title>
+</h:head>
+<h:body>
+	<h:form>
+		<p:panel header="EventCreation Form">
+			<h:panelGrid columns="3" cellpadding="5" id="evGrid">
+				<p:outputLabel for="title">Title:</p:outputLabel>
+				<p:inputText id="title" value="#{eventCreationBean.current.title}">
+					<p:ajax update="titlemsg" />
+				</p:inputText>
+				<p:message id="titlemsg" for="title" />
+
+				<p:outputLabel for="description">Description:</p:outputLabel>
+				<p:inputText id="description"
+					value="#{eventCreationBean.current.description}">
+					<p:ajax update="descriptionmsg" />
+				</p:inputText>
+				<p:message id="descriptionmsg" for="description" />
+
+				<p:outputLabel for="location">Location:</p:outputLabel>
+				<p:inputText id="location"
+					value="#{eventCreationBean.current.location}">
+					<p:ajax update="locationmsg" />
+				</p:inputText>
+				<p:message id="locationmsg" for="location" />
+
+				<p:outputLabel for="startDate">start Date:</p:outputLabel>
+				<p:inputMask id="startDate"
+					value="#{eventCreationBean.current.startDate}" mask="99/99/9999">
+					<f:convertDateTime pattern="dd/MM/yyyy" timeZone="GMT+2" />
+					<p:ajax update="startDatemsg" />
+				</p:inputMask>
+				<p:message id="startDatemsg" for="startDatemsg" />
+
+				<p:outputLabel for="endDate">end Date:</p:outputLabel>
+				<p:inputMask id="endDate"
+					value="#{eventCreationBean.current.endDate}" mask="99/99/9999">
+					<f:convertDateTime pattern="dd/MM/yyyy" timeZone="GMT+2" />
+					<p:ajax update="endDatemsg" />
+				</p:inputMask>
+				<p:message id="endDatemsg" for="endDatemsg" />
+
+
+				<p:outputLabel for="visible">Visibility:</p:outputLabel>
+				<p:selectOneMenu id="visible"
+					value="#{eventCreationBean.current.visibility}" style="width:125px">
+					<f:selectItem itemLabel="Public" itemValue="public" />
+					<f:selectItem itemLabel="Private" itemValue="private" />
+				</p:selectOneMenu>
+				<p:message id="visiblemsg" for="visible" />
+
+				<p:outputLabel for="indoorOutdoor">Indoor/Outdoor:</p:outputLabel>
+				<p:selectOneMenu id="indoorOutdoor"
+					value="#{eventCreationBean.IOListened}" style="width:125px">
+					<f:selectItem itemLabel="Indoor" itemValue="indoor" />
+					<f:selectItem itemLabel="Outdoor" itemValue="outdoor"/>
+						<p:ajax update="out" event="keyup" listener="#{eventCreationBean.handleKeyEvent}"/>
+				</p:selectOneMenu>
+				<h:outputText id="out" value="#{eventCreationBean.IOListened}"/>
+				<!--<p:message id="inputOutputmsg" for="indoorOutdoor" /> -->
+				
+				<p:outputLabel id="badWeatherConditionLab" rendered="#{eventCreationBean.current.indoorOutdoor==outdoor}" >Bad weather condition:</p:outputLabel>
+				<p:selectOneMenu id="badWeatherConditionMenu"
+					value="" style="width:125px">
+					<f:selectItem itemLabel="Sunny" itemValue="sunny" />
+					<f:selectItem itemLabel="Cloudy" itemValue="cloudy" />
+					<f:selectItem itemLabel="Rainy" itemValue="rainy" />
+					<f:selectItem itemLabel="Snowy" itemValue="snowy" />
+				</p:selectOneMenu>
+
+				<!--  
+				<h:form>
+					<h:panelGrid columns="2" cellpadding="5">
+						<h:outputLabel for="menu" value="Invited Users:" />
+						<p:selectCheckboxMenu id="menu" value="#{checkboxView.users}"
+							label="Users" filter="true" filterMatchMode="startsWith">
+							<f:selectItems value="#{checkboxView.users}" />
+						</p:selectCheckboxMenu>
+					</h:panelGrid>
+				</h:form>-->
+			</h:panelGrid>
+			<p:dataTable id="checkboxDT" var="user" value="#{checkboxView.users}"
+				selection="#{checkboxView.selectedUsers}" rowKey="#{user.username}"
+				style="margin-bottom:0" scrollable="true">
+				<f:facet name="header">
+            			Invited Users:
+        			</f:facet>
+				<p:column selectionMode="multiple"
+					style="width:16px;text-align:center" />
+				<p:column headerText="username">
+					<h:outputText value="#{user.username}" />
+				</p:column>
+				<p:column headerText="email">
+					<h:outputText value="#{user.email}" />
+				</p:column>
+			</p:dataTable>
+			<p:commandButton value="Create" update="evGrid"
+				action="#{eventCreationBean.createEvent()}" />
+			
+			<h:link value="back to main page" outcome="mainPage"/>
+
+		</p:panel>
+	</h:form>
+</h:body>
+</html>

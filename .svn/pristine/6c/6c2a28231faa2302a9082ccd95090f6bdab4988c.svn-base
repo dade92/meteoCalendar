@@ -1,0 +1,49 @@
+package control;
+
+import javax.ejb.Stateless;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import entity.Event;
+import entity.User;
+
+@Stateless
+public class InvitationManager {
+	
+    @PersistenceContext
+    EntityManager em;
+    
+    /**
+     * create an invitation entry given the
+     * id of the user and of the event
+     * @param userId user's id
+     * @param eventId event's id
+     */
+    public void createInvitation(int userId,int eventId) {
+    	
+    }
+    
+    /**
+     * load the events to which
+     * the user has been invited
+     * @param userId user's id
+     * @return the events to which
+     * 		the user has been invited
+     */
+    public Event loadEventByUser(int userId) {
+    	return null;
+    }
+    
+    /**
+     * get the participants to an event
+     * @param eventId event's id
+     * @return the users that will participate
+     * 		to the event
+     */
+    public User loadUserByEvent(int eventId) {
+    	return null;
+    }
+    
+    
+
+}

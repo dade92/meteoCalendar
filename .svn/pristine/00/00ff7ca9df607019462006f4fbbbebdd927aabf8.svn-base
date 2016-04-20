@@ -1,0 +1,167 @@
+package control;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.Date;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
+import javax.ejb.Schedule;
+import javax.ejb.Singleton;
+
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONObject;
+
+import entity.Event;
+
+@Singleton
+public class WeatherManager {
+	
+	@EJB EventManager em;
+	
+	private static final String BASE_URL="http://api.openweathermap.org/data/2.5/forecast/daily?q=";
+	
+	private static final String DAY_URL=",IT&mode=json&units=metric&cnt=16";
+	
+	private static final long MILLIS_IN_A_DAY=3600*24*1000;
+	
+	
+    @PostConstruct
+    private void constructed() {
+        System.out.println("weather manager built");
+    }
+	
+	
+	public String getWeatherData(String location,Date date) {	
+		
+		HttpURLConnection con = null ;
+        InputStream is = null;
+        String weather=null;
+ 
+        try {
+            con = (HttpURLConnection) ( new URL(BASE_URL+location+DAY_URL)).openConnection();
+            con.setRequestMethod("GET");
+            con.setDoInput(true);
+            con.setDoOutput(true);
+            con.connect();
+            JSONObject jsonObject;
+             
+            // Let's read the response
+            StringBuffer buffer = new StringBuffer();
+            is = con.getInputStream();
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            String line = null;
+            while (  (line = br.readLine()) != null )
+                buffer.append(line + "\r\n");
+             
+            is.close();
+            con.disconnect();
+            
+            //gets the json object
+            jsonObject=new JSONObject( buffer.toString() );
+            //Here we have the forecast for every day
+            JSONArray jArr = jsonObject.getJSONArray("list"); 
+            
+            for (int i=0; i < jArr.length(); i++) {
+            	//forecast for the day
+            	JSONObject jDayForecast = jArr.getJSONObject(i);
+            	
+            	//retrieve the timestamp
+            	long timestamp = jDayForecast.getLong("dt")*1000;
+            	
+            	//se è il suo giorno
+            	if(getTimestampOfTheDay(timestamp)==getTimestampOfTheDay(date.getTime())) {
+            		//gets the array of the weather
+            		JSONArray jWeatherArr = jDayForecast.getJSONArray("weather");
+            		//gets the first object in the array (the only once)
+            		JSONObject jWeatherObj = jWeatherArr.getJSONObject(0);
+            		//gets the string of the weather
+            		weather= jWeatherObj.getString("main");
+            	}//end if
+
+            }//end for
+        }
+        catch(Throwable t) {
+            t.printStackTrace();
+        }
+        finally {
+            try { is.close(); } catch(Throwable t) {}
+            try { con.disconnect(); } catch(Throwable t) {}
+        }
+        return weather;
+ 
+	}
+			
+	private static long getTimestampOfTheDay(long ts) {
+		return ts-(ts%MILLIS_IN_A_DAY);
+	}
+	
+	public void getWeatherByDate() {
+		HttpURLConnection con = null ;
+        InputStream is = null;
+        
+        
+        try {
+            con = (HttpURLConnection) ( new URL(BASE_URL + "erba")).openConnection();
+            con.setRequestMethod("GET");
+            con.setDoInput(true);
+            con.setDoOutput(true);
+            con.connect();
+             
+            // Let's read the response
+            StringBuffer buffer = new StringBuffer();
+            is = con.getInputStream();
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            String line = null;
+            while (  (line = br.readLine()) != null )
+                buffer.append(line + "\r\n");
+             
+            is.close();
+            con.disconnect();
+            
+        }
+        catch(Throwable t) {
+            t.printStackTrace();
+        }
+        finally {
+            try { is.close(); } catch(Throwable t) {}
+            try { con.disconnect(); } catch(Throwable t) {}
+        }
+                
+	}
+	
+	/**
+	 * task called to update
+	 * the events 
+	 */
+	@Schedule(second = "*/59", minute = "*/59", hour = "*", persistent = false)
+    public void updateEvents() {
+		
+		Date today=new Date();
+		long todayTime=today.getTime();
+    	
+    	for(Event e:em.findAll()) {
+    		try {
+    			System.out.println("event:"+e);
+    			//if today there is an event, then it updates the weather
+    			if(e.getStartDate().getTime()<=todayTime && e.getEndDate().getTime()>=todayTime) {
+    				System.out.println("event with the current date:"+e);
+    				e.setWeather(this.getWeatherData(e.getLocation(), today));
+    				em.updateWeather(e);
+    				//otherwise if the events has a previous event, the weather doesn't change
+    			} else if(todayTime<=e.getStartDate().getTime()) {
+    				
+    			}
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+    	}
+    	
+    }
+	
+
+}

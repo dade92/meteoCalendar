@@ -1,0 +1,48 @@
+package bean;
+
+import java.util.Date;
+import java.util.List;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Named;
+
+
+import control.NotificationManager;
+import control.UserManager;
+import entity.Notification;
+import entity.User;
+
+@Named
+@RequestScoped
+public class NotificationBean {
+	
+	private List<Notification> notifications;
+	@EJB NotificationManager nm;
+	@EJB UserManager um;
+	
+	@PostConstruct
+	public void init() {
+		setNotifications(nm.findNotificationsByUser(um.getLoggedUser()));
+	}
+
+	
+	public NotificationBean() {
+		
+	}
+
+
+	public List<Notification> getNotifications() {
+		return notifications;
+	}
+
+
+	public void setNotifications(List<Notification> notifications) {
+		this.notifications = notifications;
+	}
+	
+	
+	
+
+}

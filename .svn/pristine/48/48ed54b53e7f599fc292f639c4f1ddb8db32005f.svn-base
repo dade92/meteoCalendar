@@ -1,0 +1,49 @@
+package entity;
+
+import java.util.Date;
+import java.util.List;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.OneToMany;
+
+@Entity
+public class OutdoorEvent extends Event {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	 @OneToMany(cascade=CascadeType.ALL)
+	private List<WeatherInformation> weather;
+	private String badWeatherCondition;
+	
+	public OutdoorEvent(String title,String descr, String visible,String location,Date startDate,Date endDate,List<WeatherInformation> weather,String badWeatherCondition) {
+		super(title,descr,visible,location,startDate,endDate);
+		setWeather(weather);
+		setBadWeatherCondition(badWeatherCondition);
+	}
+	
+	public OutdoorEvent() {
+		// TODO Auto-generated constructor stub
+	}
+
+	public void setBadWeatherCondition(String bwc) {
+		this.badWeatherCondition=bwc;
+	}
+	
+	public String getBadWeatherCondition() {
+		return this.badWeatherCondition;
+	}
+	
+	public void setWeather(List<WeatherInformation> w) {
+		this.weather=w;
+	}
+	
+	public List<WeatherInformation> getWeather() {
+		return weather;
+	}
+	
+	
+
+}

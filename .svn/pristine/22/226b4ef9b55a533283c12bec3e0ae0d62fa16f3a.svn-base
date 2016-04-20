@@ -1,0 +1,57 @@
+package control;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
+import javax.ejb.Schedule;
+import javax.ejb.Singleton;
+import javax.ejb.Stateless;
+import javax.json.JsonObject;
+import javax.ws.rs.client.ClientBuilder;
+
+import entity.Event;
+import entity.User;
+
+@Singleton
+public class Rescheduler {
+	
+	@EJB NotificationManager nm;
+	@EJB UserManager um;
+	@EJB EventManager em;
+	@EJB WeatherManager wm;
+	@EJB InvitationManager im;
+	private List<Event> tomorrowEvents;
+	
+	private static final Logger logger = Logger.getLogger(Rescheduler.class.getName());
+	
+    @PostConstruct
+    private void constructed() {
+        logger.log(Level.INFO, "rescheduler created");
+    }
+	
+	@Schedule(hour = "*", minute = "*", second = "*/5", persistent=false)
+	public void checkForBadWeather() {
+	
+		/*
+		User currentUser=um.getLoggedUser();
+		Calendar calendar=new GregorianCalendar();
+		calendar.add(Calendar.DAY_OF_MONTH, 1);
+		Date tomorrow=calendar.getTime();
+		
+		//gets the weather of tomorrow
+		System.out.println(wm.getWeatherData("erba"));
+		
+		//gets the events of the user planned for tomorrow
+		tomorrowEvents=im.loadEventsByDate(currentUser, calendar.getTime());
+		this.tomorrowEvents.addAll(em.loadEventsByDate(currentUser, tomorrow));*/
+				
+				
+	}
+	
+}
